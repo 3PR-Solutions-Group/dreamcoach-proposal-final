@@ -2718,6 +2718,40 @@ body::before {
         <div class="ltv-cell"><div class="v">6%</div><div class="l">Monthly churn</div></div>
         <div class="ltv-cell"><div class="v">4%</div><div class="l">Free → Premium conversion</div></div>
       </div>
+      <div class="reveal" style="margin-top:2rem;margin-bottom:2rem;background:var(--deep-navy);border:1px solid var(--void);border-radius:6px;padding:2rem">
+        <div class="eyebrow" style="margin-bottom:1.4rem;color:var(--teal)">Glossary &middot; What these numbers mean</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:0;">
+          <div style="display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:0.5rem 2rem;align-items:start;border-bottom:1px solid var(--void);padding:1.1rem 0">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--emerald);padding-top:0.1rem">LTV : CAC &middot; 12.4&times;</div>
+            <div style="color:var(--slate);font-size:0.9rem;line-height:1.6"><strong style="color:var(--off-white);font-weight:500">Lifetime Value to Customer Acquisition Cost.</strong> For every &pound;1 spent acquiring a user, the app earns &pound;12.40 back over the user&apos;s lifetime. Anything above 3&times; is considered healthy. 12.4&times; means strong retention relative to acquisition cost.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:0.5rem 2rem;align-items:start;border-bottom:1px solid var(--void);padding:1.1rem 0">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--emerald);padding-top:0.1rem">Monthly Churn &middot; 6%</div>
+            <div style="color:var(--slate);font-size:0.9rem;line-height:1.6"><strong style="color:var(--off-white);font-weight:500">The percentage of premium subscribers who cancel each month.</strong> Category average is 8&ndash;12%. At 6%, DreamCoach retains users better than most competitors. The grace day streak system and Dream Teams accountability are the structural reasons why.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:0.5rem 2rem;align-items:start;border-bottom:1px solid var(--void);padding:1.1rem 0">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--emerald);padding-top:0.1rem">Free &rarr; Premium &middot; 4%</div>
+            <div style="color:var(--slate);font-size:0.9rem;line-height:1.6"><strong style="color:var(--off-white);font-weight:500">The percentage of free users who upgrade to a paid plan.</strong> Category average is 2&ndash;5%. The AI Dream Coach and the full Letting Go ritual are gated at Premium &mdash; they are the conversion drivers. The calculator above lets you model optimistic and conservative scenarios.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:0.5rem 2rem;align-items:start;border-bottom:1px solid var(--void);padding:1.1rem 0">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--emerald);padding-top:0.1rem">MAU</div>
+            <div style="color:var(--slate);font-size:0.9rem;line-height:1.6"><strong style="color:var(--off-white);font-weight:500">Monthly Active Users &mdash; the number of people who open the app at least once in a 30-day period.</strong> The industry standard denominator for all growth metrics. The starting point for every revenue calculation in the model.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:0.5rem 2rem;align-items:start;border-bottom:1px solid var(--void);padding:1.1rem 0">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--emerald);padding-top:0.1rem">Net ARPU</div>
+            <div style="color:var(--slate);font-size:0.9rem;line-height:1.6"><strong style="color:var(--off-white);font-weight:500">Average Revenue Per User, after payment processing.</strong> At &pound;7.99/month list price, net ARPU is &pound;7.19 after Stripe fees and the blended App Store / Play Store rate. What lands in the bank &mdash; not the headline price.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:0.5rem 2rem;align-items:start;border-bottom:1px solid var(--void);padding:1.1rem 0">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--emerald);padding-top:0.1rem">Avg Tenure &middot; 14mo</div>
+            <div style="color:var(--slate);font-size:0.9rem;line-height:1.6"><strong style="color:var(--off-white);font-weight:500">How long the average premium subscriber stays before cancelling.</strong> At 14 months, users are paying for over a year. Dream Teams social accountability is the main driver &mdash; users in a team with friends are significantly less likely to cancel than solo users of any habit app.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:0.5rem 2rem;align-items:start;padding:1.1rem 0">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--emerald);padding-top:0.1rem">MRR &amp; ARR</div>
+            <div style="color:var(--slate);font-size:0.9rem;line-height:1.6"><strong style="color:var(--off-white);font-weight:500">Monthly and Annual Recurring Revenue.</strong> MRR is what premium subscribers pay each month. ARR is MRR &times; 12. These are the two numbers investors use to measure the business. At 50k MAU, 4% conversion, and &pound;7.99 pricing: MRR &asymp; &pound;14k, ARR &asymp; &pound;173k. Scale to 500k MAU and the same rates return &asymp; &pound;1.7M MRR / &pound;20M ARR.</div>
+          </div>
+        </div>
+      </div>
+
 
       <div class="eyebrow reveal" style="margin-bottom:1.2rem">Revenue model · Live calculator</div>
       <div class="calc reveal">
