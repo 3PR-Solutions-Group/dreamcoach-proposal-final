@@ -1,0 +1,4001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DreamCoach — Proposal · 3PR</title>
+<meta name="description" content="A proposal for David King-Reubens — DreamCoach, the operating system for your most important dreams." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Geist:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* Palette — David's existing DreamCoach world */
+  --abyss: #0D0F14;
+  --deep-navy: #161A22;
+  --charcoal: #1E2230;
+  --void: #2A2F3D;
+  --emerald: #2ECC8A;
+  --emerald-glow: rgba(46, 204, 138, 0.18);
+  --teal: #4ECDC4;
+  --off-white: #E8EAF0;
+  --slate: #8B90A0;
+  --amber: #F5A623;
+  --crimson: #E55A5A;
+  --ivory: #F5F0E8;
+
+  /* Type */
+  --font-display: 'Fraunces', 'Georgia', serif;
+  --font-body: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+
+  /* Spacing rhythm */
+  --gutter: clamp(1.25rem, 4vw, 3rem);
+  --max-w: 1280px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   RESET + GLOBAL
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--abyss);
+  color: var(--off-white);
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-x: hidden;
+  font-feature-settings: 'ss01', 'ss02';
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+img { max-width: 100%; display: block; }
+
+/* Subtle grain overlay for editorial texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.6'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  z-index: 1000;
+  mix-blend-mode: overlay;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  font-variation-settings: 'opsz' 144, 'SOFT' 30;
+}
+.display em { font-style: italic; font-weight: 300; color: var(--emerald); }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--slate);
+  font-weight: 400;
+}
+.eyebrow .num { color: var(--emerald); margin-right: 0.8em; }
+
+.lead {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  line-height: 1.3;
+  color: var(--off-white);
+  max-width: 56ch;
+  letter-spacing: -0.015em;
+}
+
+.body-text { color: var(--off-white); max-width: 64ch; }
+.body-text p + p { margin-top: 1.1em; }
+.muted { color: var(--slate); }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 var(--gutter); }
+.section { padding: clamp(5rem, 10vw, 9rem) 0; position: relative; }
+.section + .section { border-top: 1px solid var(--void); }
+
+.section-head { display: grid; grid-template-columns: 1fr; gap: 2.5rem; margin-bottom: 4rem; }
+@media (min-width: 900px) {
+  .section-head { grid-template-columns: 0.85fr 1.15fr; align-items: end; gap: 4rem; }
+}
+.section-head h2 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  color: var(--off-white);
+}
+.section-head h2 em { font-style: italic; color: var(--emerald); }
+
+/* ============================================================
+   HEADER / NAV
+   ============================================================ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13, 15, 20, 0.78);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--void);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+  padding: 0 var(--gutter);
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+.brand { display: flex; align-items: center; gap: 0.65rem; font-weight: 500; letter-spacing: -0.01em; font-size: 0.95rem; }
+.brand .gem { color: var(--emerald); }
+.brand strong { font-weight: 500; }
+.brand .sep { color: var(--void); margin: 0 0.5rem; }
+.brand .meta { color: var(--slate); font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.nav button {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  color: var(--slate);
+  transition: color 0.25s var(--ease), background 0.25s var(--ease);
+  border: 1px solid transparent;
+}
+.nav button:hover { color: var(--off-white); }
+.nav button.active {
+  color: var(--off-white);
+  background: var(--charcoal);
+  border-color: var(--void);
+}
+.nav button.active .dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--emerald);
+  border-radius: 50%;
+  margin-right: 0.55rem;
+  box-shadow: 0 0 0 3px var(--emerald-glow);
+  vertical-align: middle;
+}
+@media (max-width: 700px) {
+  .nav button { padding: 0.45rem 0.65rem; font-size: 0.65rem; }
+  .brand .meta { display: none; }
+}
+
+/* ============================================================
+   VIEW SWITCHING
+   ============================================================ */
+.view { display: none; animation: fadeIn 0.5s var(--ease-out); }
+.view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero { padding: clamp(4rem, 9vw, 8rem) 0 clamp(3rem, 6vw, 5rem); position: relative; overflow: hidden; }
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--emerald-glow) 0%, transparent 60%);
+  filter: blur(80px);
+  z-index: 0;
+  pointer-events: none;
+}
+.hero-inner { position: relative; z-index: 1; }
+.hero .prepared {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--slate);
+  margin-bottom: 2.4rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.hero .prepared .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 3px var(--emerald-glow); }
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(3rem, 8vw, 6.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  margin-bottom: 2rem;
+  font-variation-settings: 'opsz' 144;
+  max-width: 18ch;
+}
+.hero h1 em { font-style: italic; color: var(--emerald); font-weight: 300; }
+.hero h1 .breath { display: block; }
+
+.hero .subhead {
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: var(--off-white);
+  max-width: 50ch;
+  margin-bottom: 2.6rem;
+  font-weight: 300;
+}
+
+.hero-ctas { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 4rem; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.6rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.92rem;
+  letter-spacing: -0.005em;
+  border-radius: 999px;
+  transition: transform 0.25s var(--ease), background 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: var(--emerald);
+  color: var(--abyss);
+}
+.btn-primary:hover { background: #3FE19D; transform: translateY(-1px); box-shadow: 0 10px 30px -10px var(--emerald-glow); }
+.btn-secondary {
+  background: transparent;
+  color: var(--off-white);
+  border-color: var(--void);
+}
+.btn-secondary:hover { background: var(--charcoal); transform: translateY(-1px); }
+.btn .arrow { display: inline-block; transition: transform 0.3s var(--ease); }
+.btn:hover .arrow { transform: translateX(3px); }
+
+/* Hero stat strip */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--void);
+  border-bottom: 1px solid var(--void);
+}
+@media (max-width: 800px) { .hero-stats { grid-template-columns: repeat(2, 1fr); } }
+.hero-stat {
+  padding: 1.8rem 1.2rem 1.8rem 0;
+  border-right: 1px solid var(--void);
+}
+.hero-stat:last-child { border-right: none; }
+@media (max-width: 800px) {
+  .hero-stat:nth-child(2) { border-right: none; }
+  .hero-stat:nth-child(-n+2) { border-bottom: 1px solid var(--void); }
+}
+.hero-stat .v {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2rem, 4.2vw, 3.2rem);
+  line-height: 1;
+  color: var(--emerald);
+  letter-spacing: -0.025em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.hero-stat .l { font-weight: 500; font-size: 0.95rem; color: var(--off-white); margin-bottom: 0.25rem; }
+.hero-stat .s {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--slate);
+}
+
+/* ============================================================
+   MARQUEE
+   ============================================================ */
+.marquee {
+  border-top: 1px solid var(--void);
+  border-bottom: 1px solid var(--void);
+  overflow: hidden;
+  padding: 1.4rem 0;
+  background: var(--deep-navy);
+  position: relative;
+}
+.marquee-track {
+  display: flex;
+  gap: 3.5rem;
+  animation: scroll 45s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+.marquee-track span {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--slate);
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+.marquee-track span::after { content: '◆'; color: var(--emerald); font-size: 0.65em; }
+@keyframes scroll { to { transform: translateX(-50%); } }
+
+/* ============================================================
+   CARDS / GRIDS
+   ============================================================ */
+.card {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2rem;
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.card:hover { border-color: var(--emerald); transform: translateY(-2px); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+.grid-4 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 700px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+
+/* Failure-mode / Gap cards */
+.gap-card .tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--crimson);
+  background: rgba(229, 90, 90, 0.08);
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+.gap-card h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.15;
+  margin-bottom: 0.85rem;
+  letter-spacing: -0.015em;
+}
+.gap-card p { color: var(--slate); font-size: 0.95rem; line-height: 1.55; }
+.gap-card .icon { font-size: 1.6rem; color: var(--emerald); margin-bottom: 1.2rem; opacity: 0.85; }
+
+/* Step explainer (full lifecycle) */
+.steps { display: grid; grid-template-columns: 1fr; gap: 1.2rem; counter-reset: step; }
+@media (min-width: 700px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .steps { grid-template-columns: repeat(4, 1fr); } }
+.step {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 1.8rem 1.5rem;
+  position: relative;
+  transition: border-color 0.3s var(--ease);
+}
+.step:hover { border-color: var(--emerald); }
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--emerald);
+  margin-bottom: 1.2rem;
+}
+.step h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+.step p { color: var(--slate); font-size: 0.92rem; line-height: 1.55; }
+.step .seq {
+  display: flex; align-items: center; gap: 0.45rem;
+  margin-top: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.step .seq::after { content: '→'; color: var(--emerald); }
+.step:last-child .seq::after { display: none; }
+
+/* Product modules */
+.module {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  transition: border-color 0.3s var(--ease);
+}
+.module:hover { border-color: var(--emerald); }
+.module-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.module h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.65rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+.module .mod-icon {
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  background: var(--charcoal);
+  border: 1px solid var(--void);
+  display: grid; place-items: center;
+  color: var(--emerald);
+  flex-shrink: 0;
+}
+.module .mod-body { color: var(--slate); font-size: 0.95rem; line-height: 1.6; }
+
+.module-list { display: grid; gap: 0.55rem; padding-top: 0.5rem; border-top: 1px solid var(--void); }
+.module-list li {
+  list-style: none;
+  display: flex;
+  gap: 0.7rem;
+  font-size: 0.88rem;
+  color: var(--off-white);
+}
+.module-list li::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--emerald);
+  border-radius: 1px;
+  margin-top: 8px;
+  flex-shrink: 0;
+  transform: rotate(45deg);
+}
+
+/* Mechanism cards (Dream Teams) */
+.mechanism {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.mechanism::before {
+  content: attr(data-num);
+  position: absolute;
+  top: -10px; right: -8px;
+  font-family: var(--font-display);
+  font-weight: 200;
+  font-style: italic;
+  font-size: 7rem;
+  line-height: 1;
+  color: var(--charcoal);
+  z-index: 0;
+}
+.mechanism > * { position: relative; z-index: 1; }
+.mechanism .label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  margin-bottom: 0.85rem;
+}
+.mechanism h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.4rem;
+  line-height: 1.2;
+  margin-bottom: 0.8rem;
+  letter-spacing: -0.01em;
+}
+.mechanism p { color: var(--slate); font-size: 0.94rem; line-height: 1.6; }
+
+/* Quote block */
+.pullquote {
+  border-left: 3px solid var(--emerald);
+  padding: 1rem 0 1rem 2rem;
+  margin: 4rem 0;
+}
+.pullquote q {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(1.4rem, 2.5vw, 2.1rem);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--off-white);
+  quotes: '"' '"';
+}
+.pullquote q::before, .pullquote q::after { content: none; }
+.pullquote cite {
+  display: block;
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-top: 1.4rem;
+}
+
+/* Compassionate Release — 5-step ritual */
+.ritual {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--void);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ritual-step {
+  background: var(--deep-navy);
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem 2rem;
+  align-items: start;
+  transition: background 0.3s var(--ease);
+}
+.ritual-step:hover { background: var(--charcoal); }
+.ritual-step .num {
+  font-family: var(--font-display);
+  font-weight: 200;
+  font-style: italic;
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--emerald);
+  letter-spacing: -0.04em;
+}
+.ritual-step h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.4rem;
+  line-height: 1.15;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.01em;
+}
+.ritual-step p { color: var(--slate); font-size: 0.95rem; line-height: 1.6; }
+
+/* Comparison treatment */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 800px) { .compare { grid-template-columns: 1fr 1fr; } }
+.compare-col {
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2rem;
+}
+.compare-col.them { background: transparent; }
+.compare-col.us { background: var(--deep-navy); border-color: var(--emerald); position: relative; }
+.compare-col.us::before {
+  content: 'DREAMCOACH';
+  position: absolute; top: -10px; left: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  background: var(--abyss);
+  color: var(--emerald);
+  padding: 0 0.7rem;
+}
+.compare-col.them::before {
+  content: 'MOST AI IN PERSONAL GROWTH';
+  position: absolute; top: -10px; left: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  background: var(--abyss);
+  color: var(--slate);
+  padding: 0 0.7rem;
+}
+.compare-col { position: relative; padding-top: 2.4rem; }
+.compare-list { display: grid; gap: 1rem; }
+.compare-list li { list-style: none; display: grid; grid-template-columns: 20px 1fr; gap: 0.8rem; font-size: 0.95rem; line-height: 1.5; }
+.compare-list.bad li::before { content: '✕'; color: var(--crimson); font-size: 1rem; }
+.compare-list.good li::before { content: '✓'; color: var(--emerald); font-weight: 700; }
+
+/* Competitor matrix table */
+.matrix-wrap { overflow-x: auto; margin-top: 3rem; border: 1px solid var(--void); border-radius: 6px; }
+.matrix { width: 100%; border-collapse: collapse; min-width: 720px; font-size: 0.92rem; }
+.matrix th, .matrix td { padding: 1.1rem 1.2rem; text-align: left; border-bottom: 1px solid var(--void); }
+.matrix th {
+  background: var(--charcoal);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-weight: 500;
+}
+.matrix td { color: var(--off-white); }
+.matrix tr:last-child td { border-bottom: none; }
+.matrix .yes { color: var(--emerald); font-weight: 600; }
+.matrix .no { color: var(--void); font-weight: 600; }
+.matrix .partial { color: var(--amber); font-weight: 600; }
+.matrix .ours td { background: rgba(46, 204, 138, 0.04); }
+.matrix .ours td:first-child { color: var(--emerald); font-weight: 600; }
+
+/* Competitor cards */
+.competitors { display: grid; grid-template-columns: 1fr; gap: 1.2rem; margin-bottom: 3rem; }
+@media (min-width: 700px) { .competitors { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .competitors { grid-template-columns: repeat(3, 1fr); } }
+.competitor {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 1.6rem;
+}
+.competitor .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+.competitor h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+.competitor .badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.competitor .desc { color: var(--slate); font-size: 0.88rem; line-height: 1.55; margin-bottom: 1rem; }
+.competitor .vibe {
+  display: flex; align-items: baseline; gap: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.66rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  margin: 0.5rem 0 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px dashed var(--void);
+  flex-wrap: wrap;
+}
+.competitor .vibe .label {
+  color: var(--emerald);
+  background: var(--emerald-glow);
+  padding: 0.3rem 0.55rem;
+  border-radius: 3px;
+  letter-spacing: 0.22em;
+}
+.competitor .vibe .sub { color: var(--slate); text-transform: none; letter-spacing: 0.02em; font-size: 0.78rem; line-height: 1.4; }
+.competitor.us {
+  border-color: var(--emerald);
+  background: linear-gradient(180deg, var(--deep-navy) 0%, rgba(46, 204, 138, 0.04) 100%);
+  position: relative;
+}
+.competitor.us::before {
+  content: '◆';
+  position: absolute;
+  top: 1.4rem; right: 1.4rem;
+  color: var(--emerald);
+  font-size: 1rem;
+  animation: dotPulse 3s ease-in-out infinite;
+}
+.competitor.us h4 { color: var(--off-white); font-family: var(--font-display); font-style: italic; font-weight: 400; }
+.competitor.us .vibe .label { color: var(--abyss); background: var(--emerald); }
+.competitor .gap {
+  border-top: 1px dashed var(--void);
+  padding-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--off-white);
+}
+.competitor .gap b { color: var(--emerald); font-weight: 600; letter-spacing: 0.02em; }
+
+/* Build plan phases */
+.phases { display: grid; grid-template-columns: 1fr; gap: 0; border: 1px solid var(--void); border-radius: 6px; overflow: hidden; }
+@media (min-width: 900px) { .phases { grid-template-columns: repeat(4, 1fr); } }
+.phase {
+  background: var(--deep-navy);
+  padding: 2.2rem 1.6rem;
+  border-right: 1px solid var(--void);
+  position: relative;
+}
+.phase:last-child { border-right: none; }
+@media (max-width: 899px) { .phase { border-right: none; border-bottom: 1px solid var(--void); } .phase:last-child { border-bottom: none; } }
+.phase .ph-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  color: var(--emerald);
+  margin-bottom: 1.2rem;
+}
+.phase .days {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 2.4rem;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.4rem;
+  color: var(--off-white);
+}
+.phase .days small { font-size: 0.95rem; color: var(--slate); margin-left: 0.3em; letter-spacing: 0; }
+.phase h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+  margin: 1.2rem 0 0.6rem;
+  letter-spacing: -0.005em;
+}
+.phase p { color: var(--slate); font-size: 0.87rem; line-height: 1.55; }
+.phase .out {
+  margin-top: 1.3rem; padding-top: 1rem; border-top: 1px dashed var(--void);
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--emerald);
+}
+
+/* What you/we provide */
+.provide-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 800px) { .provide-grid { grid-template-columns: 1fr 1fr; } }
+.provide-col h3 {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-bottom: 1.4rem;
+}
+.provide-col h3.you { color: var(--teal); }
+.provide-col h3.dave { color: var(--emerald); }
+.provide-col ul { list-style: none; display: grid; gap: 1rem; }
+.provide-col li {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 4px;
+  padding: 1rem 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.provide-col li b { color: var(--off-white); font-weight: 500; display: block; margin-bottom: 0.25rem; }
+.provide-col li span { color: var(--slate); font-size: 0.88rem; }
+
+/* Pricing */
+.pricing { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 900px) { .pricing { grid-template-columns: repeat(3, 1fr); } }
+.tier {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2.2rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.tier.featured { border-color: var(--emerald); position: relative; }
+.tier.featured::before {
+  content: 'RECOMMENDED';
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.22em;
+  background: var(--emerald); color: var(--abyss); padding: 0.3rem 0.8rem; border-radius: 3px;
+}
+.tier .name {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate);
+}
+.tier .price {
+  font-family: var(--font-display); font-weight: 300; font-size: 2.6rem; line-height: 1; letter-spacing: -0.025em;
+}
+.tier .price small { font-size: 0.95rem; color: var(--slate); display: block; margin-top: 0.4rem; letter-spacing: 0; }
+.tier .desc { color: var(--slate); font-size: 0.92rem; }
+.tier ul { list-style: none; display: grid; gap: 0.65rem; flex-grow: 1; }
+.tier li { display: grid; grid-template-columns: 16px 1fr; gap: 0.7rem; font-size: 0.9rem; line-height: 1.45; }
+.tier li::before { content: '◆'; color: var(--emerald); font-size: 0.7rem; padding-top: 4px; }
+.tier .cta { padding: 0.9rem 1.4rem; border-radius: 999px; text-align: center; font-weight: 500; font-size: 0.9rem; border: 1px solid var(--void); transition: all 0.25s var(--ease); }
+.tier .cta:hover { border-color: var(--emerald); color: var(--emerald); }
+.tier.featured .cta { background: var(--emerald); color: var(--abyss); border-color: var(--emerald); }
+.tier.featured .cta:hover { background: #3FE19D; color: var(--abyss); }
+
+/* Team */
+.team-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+@media (min-width: 700px) { .team-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .team-grid { grid-template-columns: repeat(3, 1fr); } }
+.team-card {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 1.6rem;
+}
+.team-card .role {
+  font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); margin-bottom: 0.7rem;
+}
+.team-card h4 { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; margin-bottom: 0.5rem; letter-spacing: -0.005em; }
+.team-card p { color: var(--slate); font-size: 0.88rem; line-height: 1.55; }
+
+/* CTA section */
+.cta-section { text-align: center; padding: clamp(6rem, 12vw, 11rem) 0; position: relative; overflow: hidden; }
+.cta-section::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, var(--emerald-glow) 0%, transparent 60%);
+  filter: blur(60px); pointer-events: none;
+}
+.cta-section > * { position: relative; z-index: 1; }
+.cta-section h2 {
+  font-family: var(--font-display); font-weight: 300; font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1; letter-spacing: -0.03em; margin-bottom: 1.5rem;
+}
+.cta-section h2 em { font-style: italic; color: var(--emerald); }
+.cta-section p { color: var(--slate); max-width: 50ch; margin: 0 auto 2.5rem; font-size: 1.1rem; line-height: 1.55; }
+
+/* Footer */
+.foot { padding: 3rem 0 4rem; border-top: 1px solid var(--void); color: var(--slate); }
+.foot-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; }
+
+/* ============================================================
+   MOODBOARD VIEW
+   ============================================================ */
+.mood-hero { padding: clamp(4rem, 8vw, 6rem) 0; border-bottom: 1px solid var(--void); }
+.mood-hero h1 {
+  font-family: var(--font-display); font-weight: 300; font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1; letter-spacing: -0.03em;
+}
+.mood-hero h1 em { font-style: italic; color: var(--emerald); }
+.mood-hero p.kicker { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 2rem; }
+.mood-hero p.desc { color: var(--slate); max-width: 58ch; margin-top: 1.5rem; font-size: 1.05rem; line-height: 1.55; }
+
+.direction { padding: clamp(5rem, 10vw, 9rem) 0; position: relative; border-bottom: 1px solid var(--void); }
+.dir-meta { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.dir-meta .rec { color: var(--emerald); }
+.dir-meta .rec::before { content: '★ '; }
+.direction h2 { font-family: var(--font-display); font-weight: 300; font-size: clamp(3rem, 7vw, 5.5rem); line-height: 0.98; letter-spacing: -0.035em; margin-bottom: 1.5rem; }
+.direction h2 em { font-style: italic; color: var(--emerald); }
+.direction .tagline { font-family: var(--font-display); font-weight: 300; font-style: italic; font-size: clamp(1.3rem, 2.5vw, 1.8rem); line-height: 1.3; color: var(--slate); margin-bottom: 3rem; max-width: 42ch; }
+
+.dir-narrative { font-size: 1.05rem; line-height: 1.65; color: var(--off-white); max-width: 62ch; margin-bottom: 4rem; }
+.dir-narrative p + p { margin-top: 1.1em; }
+
+/* UI Mockup — applied design language */
+.applied {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+  margin-bottom: 4rem;
+  padding: clamp(2rem, 4vw, 3rem);
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 8px;
+  position: relative;
+}
+@media (min-width: 900px) { .applied { grid-template-columns: 360px 1fr; gap: 4rem; } }
+.applied .applied-text h4 { font-family: var(--font-display); font-weight: 400; font-size: 1.4rem; line-height: 1.2; letter-spacing: -0.01em; margin-bottom: 1rem; }
+.applied .applied-text p { color: var(--slate); font-size: 0.96rem; line-height: 1.65; max-width: 50ch; }
+.applied .applied-text p + p { margin-top: 1em; }
+.applied .applied-text .pill { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--emerald); margin-bottom: 1.2rem; display: inline-block; }
+.applied .applied-text strong { color: var(--off-white); font-weight: 500; }
+
+/* Phone frame — shared shell */
+.phone {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  aspect-ratio: 9/19;
+  border-radius: 36px;
+  padding: 10px;
+  background: linear-gradient(145deg, #2A2F3D 0%, #14171F 100%);
+  box-shadow:
+    0 30px 80px -20px rgba(0,0,0,0.75),
+    0 0 0 1px rgba(255,255,255,0.04),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  border-radius: 26px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.ph-notch {
+  height: 22px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 18px 0 24px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  position: relative;
+}
+.ph-notch::before {
+  content: ''; position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  width: 70px; height: 14px; background: #000; border-radius: 10px;
+}
+.ph-notch .dots { display: flex; gap: 3px; }
+.ph-notch .dots span { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.6; }
+.ph-body { flex: 1; padding: 18px 14px; overflow: hidden; font-size: 10px; line-height: 1.4; }
+.ph-eyebrow { font-family: var(--font-mono); font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.55; margin-bottom: 4px; }
+.ph-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 3px; }
+.ph-sub { font-size: 8.5px; opacity: 0.55; }
+.ph-tabs { display: flex; gap: 0; margin: 14px 0 12px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+.ph-tab { font-size: 9px; padding: 8px 0; flex: 1; text-align: center; opacity: 0.45; position: relative; }
+.ph-tab.active { opacity: 1; font-weight: 500; }
+.ph-tab.active::after { content: ''; position: absolute; bottom: -0.5px; left: 20%; right: 20%; height: 1.5px; background: currentColor; }
+.ph-card { border-radius: 8px; padding: 11px 12px; margin-bottom: 8px; border: 0.5px solid rgba(255,255,255,0.06); }
+.ph-card .label { font-family: var(--font-mono); font-size: 6.5px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.5; margin-bottom: 5px; }
+.ph-card .h { font-size: 11px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 4px; }
+.ph-card .q { font-size: 8.5px; font-style: italic; opacity: 0.7; margin-bottom: 5px; }
+.ph-card .t { font-size: 8.5px; opacity: 0.75; line-height: 1.4; }
+
+/* Direction A phone — David's existing world (blue UI accent, emerald as semantic-positive) */
+.mock-a .phone-screen { background: #0D0F14; color: #E8EAF0; }
+.mock-a .ph-tab.active { color: #5B9EFF; }
+.mock-a .ph-tab.active::after { background: #5B9EFF; }
+.mock-a .ph-card.positive { background: rgba(46,204,138,0.06); border-color: rgba(46,204,138,0.35); }
+.mock-a .ph-card.positive .h { color: #E8EAF0; display: flex; align-items: center; gap: 6px; }
+.mock-a .ph-card.positive .gem { color: #2ECC8A; font-size: 13px; }
+.mock-a .ph-card.positive .label { color: #2ECC8A; }
+.mock-a .ph-card.archetype { background: rgba(91,158,255,0.05); border-color: rgba(91,158,255,0.25); }
+.mock-a .ph-card.archetype .q { color: #5B9EFF; }
+.mock-a .ph-card.detail { background: #161A22; }
+
+/* Direction B phone — emerald promoted, gem motif amplified, Fraunces italic display */
+.mock-b .phone-screen { background: #0D0F14; color: #E8EAF0; }
+.mock-b .ph-title { font-family: var(--font-display); font-weight: 300; font-style: italic; font-size: 22px; letter-spacing: -0.025em; }
+.mock-b .ph-brand-gem { color: #2ECC8A; font-size: 11px; margin-right: 4px; }
+.mock-b .ph-tab.active { color: #2ECC8A; }
+.mock-b .ph-tab.active::after { background: #2ECC8A; box-shadow: 0 0 8px rgba(46,204,138,0.5); }
+.mock-b .ph-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 12px; }
+.mock-b .ph-stat { border: 0.5px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px 6px; text-align: center; }
+.mock-b .ph-stat .v { font-family: var(--font-display); font-weight: 300; font-size: 17px; letter-spacing: -0.02em; line-height: 1; }
+.mock-b .ph-stat .l { font-size: 6.5px; opacity: 0.5; margin-top: 3px; letter-spacing: 0.1em; text-transform: uppercase; }
+.mock-b .ph-stat.active { background: rgba(46,204,138,0.08); border-color: rgba(46,204,138,0.4); }
+.mock-b .ph-stat.active .v { color: #2ECC8A; }
+.mock-b .ph-card.realize { background: rgba(46,204,138,0.05); border-color: rgba(46,204,138,0.25); }
+.mock-b .ph-card.realize .label { color: #2ECC8A; }
+.mock-b .ph-card.realize .q { font-family: var(--font-display); font-style: italic; font-size: 12px; opacity: 0.95; color: #E8EAF0; }
+.mock-b .ph-question { padding: 12px; }
+.mock-b .ph-q { font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 13px; line-height: 1.3; margin-bottom: 10px; letter-spacing: -0.01em; }
+.mock-b .ph-cta { padding: 9px 12px; border-radius: 999px; font-size: 9.5px; font-weight: 500; text-align: center; margin-bottom: 6px; border: 0.5px solid rgba(255,255,255,0.1); }
+.mock-b .ph-cta.primary { background: #2ECC8A; color: #0D0F14; border-color: #2ECC8A; box-shadow: 0 0 20px rgba(46,204,138,0.3); }
+.mock-b .ph-cta.primary::before { content: '◆ '; }
+
+/* Direction C phone — cream/forest/terracotta editorial */
+.mock-c .phone-screen { background: #F4EBDD; color: #1A1E18; }
+.mock-c .ph-notch { color: #1A1E18; }
+.mock-c .ph-eyebrow { color: #8E7B5E; }
+.mock-c .ph-title { font-family: var(--font-display); font-style: italic; font-weight: 300; font-size: 22px; color: #2E5440; letter-spacing: -0.02em; }
+.mock-c .ph-sub { color: #5E5343; }
+.mock-c .ph-tab { color: #8E7B5E; }
+.mock-c .ph-tab.active { color: #2E5440; }
+.mock-c .ph-tab.active::after { background: #2E5440; }
+.mock-c .ph-tabs { border-color: rgba(46,84,64,0.2); }
+.mock-c .ph-card { border-color: rgba(46,84,64,0.15); background: rgba(255,255,255,0.4); }
+.mock-c .ph-card .label { color: #8E7B5E; }
+.mock-c .ph-card .t { color: #5E5343; }
+.mock-c .ph-card.accent-forest { border-left: 2.5px solid #2E5440; padding-left: 12px; }
+.mock-c .ph-card.accent-clay { border-left: 2.5px solid #C75732; padding-left: 12px; }
+.mock-c .ph-card.summary { background: rgba(46,84,64,0.06); border-color: rgba(46,84,64,0.25); }
+.mock-c .ph-card.summary .h { color: #2E5440; font-family: var(--font-display); font-style: italic; font-weight: 400; }
+.mock-c .ph-card.summary .q { font-family: var(--font-display); font-style: italic; color: #C75732; }
+
+/* Positioning matrix — 2x2 scatter */
+.matrix-plot {
+  position: relative;
+  aspect-ratio: 5/4;
+  max-width: 760px;
+  margin: 0 auto;
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 8px;
+  padding: 56px 64px 56px 64px;
+}
+.matrix-plot .plot-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(to right, var(--void) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--void) 1px, transparent 1px);
+  background-size: 50% 50%;
+  background-position: center;
+}
+.matrix-plot .ax {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.matrix-plot .ax-l { left: 16px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: left center; white-space: nowrap; }
+.matrix-plot .ax-r { right: 16px; top: 50%; transform: translateY(-50%) rotate(90deg); transform-origin: right center; white-space: nowrap; color: var(--emerald); }
+.matrix-plot .ax-t { top: 14px; left: 50%; transform: translateX(-50%); color: var(--emerald); white-space: nowrap; }
+.matrix-plot .ax-b { bottom: 14px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.matrix-plot .dot {
+  position: absolute;
+  width: 10px; height: 10px;
+  background: var(--slate);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.matrix-plot .dot::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 14px; left: 50%; transform: translateX(-50%);
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--off-white);
+}
+.matrix-plot .dot.us {
+  background: var(--emerald);
+  width: 18px; height: 18px;
+  box-shadow: 0 0 0 6px var(--emerald-glow), 0 0 36px var(--emerald-glow);
+  animation: dotPulse 3s ease-in-out infinite;
+}
+.matrix-plot .dot.us::after {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--emerald);
+  font-size: 1.05rem;
+  top: 22px;
+}
+@keyframes dotPulse {
+  50% { box-shadow: 0 0 0 10px var(--emerald-glow), 0 0 52px var(--emerald-glow); }
+}
+.matrix-plot .zone-label {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(46, 204, 138, 0.4);
+  pointer-events: none;
+}
+
+/* End-user monetisation tiers */
+.user-pricing { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem; }
+@media (min-width: 900px) { .user-pricing { grid-template-columns: repeat(3, 1fr); } }
+.user-tier {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2rem;
+  display: flex; flex-direction: column; gap: 1.2rem;
+}
+.user-tier.featured { border-color: var(--emerald); position: relative; }
+.user-tier.featured::before {
+  content: 'CORE REVENUE';
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.22em;
+  background: var(--emerald); color: var(--abyss); padding: 0.3rem 0.8rem; border-radius: 3px;
+}
+.user-tier .ut-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); }
+.user-tier .ut-price { font-family: var(--font-display); font-weight: 300; font-size: 2.6rem; line-height: 1; letter-spacing: -0.025em; color: var(--off-white); }
+.user-tier .ut-price small { font-size: 0.95rem; color: var(--slate); display: block; margin-top: 0.4rem; letter-spacing: 0; }
+.user-tier .ut-tag { color: var(--slate); font-size: 0.92rem; line-height: 1.5; }
+.user-tier ul { list-style: none; display: grid; gap: 0.6rem; flex-grow: 1; }
+.user-tier li { display: grid; grid-template-columns: 14px 1fr; gap: 0.6rem; font-size: 0.88rem; line-height: 1.45; color: var(--off-white); }
+.user-tier li::before { content: '✓'; color: var(--emerald); font-weight: 700; font-size: 0.78rem; padding-top: 3px; }
+
+/* LTV metric strip */
+.ltv-strip {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;
+  border: 1px solid var(--void); border-radius: 6px; overflow: hidden;
+  margin-bottom: 3rem;
+}
+@media (min-width: 700px) { .ltv-strip { grid-template-columns: repeat(4, 1fr); } }
+.ltv-cell {
+  background: var(--deep-navy);
+  padding: 1.8rem 1.4rem;
+  text-align: left;
+  border-right: 1px solid var(--void);
+}
+.ltv-cell:last-child { border-right: none; }
+@media (max-width: 699px) {
+  .ltv-cell:nth-child(2) { border-right: none; }
+  .ltv-cell:nth-child(-n+2) { border-bottom: 1px solid var(--void); }
+}
+.ltv-cell .v {
+  font-family: var(--font-display); font-weight: 300; font-size: 2.4rem; line-height: 1;
+  letter-spacing: -0.025em; color: var(--emerald); margin-bottom: 0.4rem;
+}
+.ltv-cell .l {
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--slate);
+}
+
+/* Revenue calculator */
+.calc {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 8px;
+  padding: clamp(2rem, 4vw, 3rem);
+  position: relative;
+}
+.calc-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+.calc-head .title { font-family: var(--font-display); font-weight: 400; font-size: 1.4rem; letter-spacing: -0.01em; }
+.calc-head .scenario { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); }
+.calc-head .scenario span { color: var(--emerald); }
+.calc-grid {
+  display: grid; grid-template-columns: 1fr; gap: 2.5rem;
+}
+@media (min-width: 800px) { .calc-grid { grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; } }
+.calc-input { display: flex; flex-direction: column; gap: 1.2rem; }
+.calc-input label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); }
+.calc-input .mau-display { font-family: var(--font-display); font-weight: 300; font-size: clamp(1.8rem, 4.2vw, 2.8rem); color: var(--off-white); letter-spacing: -0.025em; line-height: 1; }
+.calc-input input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px;
+  background: var(--void);
+  border-radius: 2px; outline: none;
+  margin: 0.5rem 0;
+}
+.calc-input input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 22px; height: 22px;
+  background: var(--emerald);
+  border-radius: 50%; cursor: pointer;
+  box-shadow: 0 0 0 6px var(--emerald-glow);
+  transition: transform 0.15s var(--ease);
+}
+.calc-input input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+.calc-input input[type="range"]::-moz-range-thumb {
+  width: 22px; height: 22px; background: var(--emerald);
+  border-radius: 50%; cursor: pointer; border: none;
+  box-shadow: 0 0 0 6px var(--emerald-glow);
+}
+.calc-input .range-ends {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 0.66rem; color: var(--slate);
+  letter-spacing: 0.05em;
+}
+.calc-output {
+  background: var(--abyss);
+  border-radius: 6px;
+  padding: 1.6rem 2rem;
+  border: 1px solid var(--void);
+}
+.calc-output .row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--void);
+  gap: 1rem;
+}
+.calc-output .row:last-child { border-bottom: none; }
+.calc-output .row.primary { padding: 1.4rem 0; }
+.calc-output .row .l {
+  font-family: var(--font-mono); font-size: 0.66rem;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate);
+}
+.calc-output .row .v {
+  font-family: var(--font-display); font-weight: 300;
+  letter-spacing: -0.02em; color: var(--off-white); font-size: 1.3rem; line-height: 1;
+}
+.calc-output .row.primary .v { color: var(--emerald); font-size: 2.2rem; }
+
+/* Code review snapshot on home page */
+.cr-snapshot {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+@media (min-width: 700px) { .cr-snapshot { padding: clamp(2rem, 4vw, 3rem); } }
+.cr-snap-head {
+  display: grid; grid-template-columns: 1fr; gap: 2rem;
+  margin-bottom: 2rem; align-items: center;
+}
+@media (min-width: 900px) { .cr-snap-head { grid-template-columns: 200px 1fr; gap: 3rem; } }
+.cr-snap-donut { width: 180px; margin: 0 auto; position: relative; aspect-ratio: 1; }
+.cr-snap-donut svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.cr-snap-donut .track { fill: none; stroke: var(--void); stroke-width: 10; }
+.cr-snap-donut .bar { fill: none; stroke: var(--emerald); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.4s var(--ease); }
+.cr-snap-donut .inner { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.cr-snap-donut .pct { font-family: var(--font-display); font-weight: 300; font-size: 2.6rem; line-height: 1; color: var(--off-white); letter-spacing: -0.025em; }
+.cr-snap-donut .lbl { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); margin-top: 0.3rem; }
+.cr-snap-summary p { color: var(--slate); font-size: 0.96rem; line-height: 1.6; max-width: 56ch; }
+.cr-snap-summary p + p { margin-top: 0.8em; }
+.cr-snap-summary p strong { color: var(--off-white); font-weight: 500; }
+.cr-snap-summary .trust {
+  margin-top: 1.6rem;
+  display: flex; flex-wrap: wrap; gap: 0.9rem 1.2rem;
+  align-items: center;
+}
+.cr-snap-summary .trust .trust-num {
+  display: inline-flex; align-items: baseline; gap: 0.3rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+.cr-snap-summary .trust .trust-num b {
+  font-family: var(--font-display); font-weight: 300; font-size: 2.4rem;
+  color: var(--emerald); letter-spacing: -0.025em; line-height: 1;
+}
+.cr-snap-summary .trust .trust-num span {
+  font-family: var(--font-mono); font-size: 0.82rem;
+  color: var(--slate); letter-spacing: 0.05em;
+}
+.cr-snap-summary .trust .trust-meta {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--slate); line-height: 1.4;
+}
+
+.cr-snap-bars { display: grid; gap: 1rem; margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--void); }
+.cr-snap-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: baseline; min-width: 0; }
+.cr-snap-bar .nm { color: var(--off-white); font-weight: 500; font-size: 0.92rem; min-width: 0; overflow-wrap: anywhere; }
+.cr-snap-bar .pc { font-family: var(--font-mono); color: var(--emerald); font-size: 0.78rem; letter-spacing: 0.05em; flex-shrink: 0; }
+.cr-snap-bar .b { grid-column: 1 / -1; height: 4px; background: var(--void); border-radius: 2px; overflow: hidden; margin-top: 0.5rem; }
+.cr-snap-bar .b .f { height: 100%; background: linear-gradient(90deg, var(--emerald) 0%, var(--teal) 100%); width: 0; transition: width 1.4s var(--ease); }
+.cr-snap-bar.zero .pc { color: var(--amber); }
+.cr-snap-bar.zero .b .f { background: var(--amber); }
+
+.cr-snap-grid {
+  display: grid; grid-template-columns: 1fr; gap: 2.5rem;
+  margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--void);
+  min-width: 0;
+}
+@media (min-width: 1000px) { .cr-snap-grid { grid-template-columns: 1fr 1fr; gap: 3rem; } }
+.cr-snap-list { min-width: 0; }
+.cr-snap-list h4 {
+  font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.22em;
+  text-transform: uppercase; margin-bottom: 1.2rem;
+}
+.cr-snap-list h4.built { color: var(--emerald); }
+.cr-snap-list h4.gap { color: var(--amber); }
+.cr-snap-list ul { list-style: none; padding: 0; margin: 0; }
+.cr-snap-list li {
+  position: relative;
+  padding-left: 1.7rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+.cr-snap-list li:last-child { margin-bottom: 0; }
+.cr-snap-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+  line-height: 1.55;
+}
+.cr-snap-list.built li::before { content: '✓'; color: var(--emerald); }
+.cr-snap-list.gap li::before { content: '!'; color: var(--amber); }
+.cr-snap-list.gap li b { color: var(--off-white); font-weight: 500; margin-right: 0.3em; white-space: nowrap; }
+
+.cr-snap-cta {
+  margin-top: 2.5rem; text-align: center;
+  padding-top: 2rem; border-top: 1px solid var(--void);
+}
+
+/* Real generated imagery cards (used in moodboard directions) */
+.real-imagery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 4rem;
+}
+@media (min-width: 800px) { .real-imagery { grid-template-columns: 1fr 1fr; } }
+.real-img {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--void);
+  aspect-ratio: 4/3;
+  background-color: var(--deep-navy);
+  position: relative;
+}
+.real-img .meta {
+  position: absolute; bottom: 14px; left: 14px;
+  font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ivory);
+  background: rgba(0,0,0,0.45);
+  padding: 0.4rem 0.7rem;
+  border-radius: 3px;
+  backdrop-filter: blur(8px);
+  z-index: 3;
+}
+
+/* Direction A — Faithful dark · Emerald gem */
+.real-a-1 {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(46,204,138,0.35) 0%, transparent 35%),
+    radial-gradient(circle at 80% 20%, rgba(78,205,196,0.18) 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(46,204,138,0.12) 0%, transparent 45%),
+    linear-gradient(160deg, #0D0F14 0%, #1A2030 60%, #0D0F14 100%);
+}
+.real-a-1::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 110px; height: 110px;
+  background: linear-gradient(135deg, #2ECC8A 0%, #4ECDC4 50%, #2ECC8A 100%);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  box-shadow: 0 0 80px rgba(46,204,138,0.55);
+  animation: gemFloat 6s ease-in-out infinite;
+}
+.real-a-1::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 160px; height: 160px;
+  border: 1px solid rgba(46,204,138,0.3);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.real-a-2 {
+  background:
+    radial-gradient(ellipse 60% 30% at 50% 100%, rgba(46,204,138,0.25) 0%, transparent 70%),
+    linear-gradient(180deg, #0D0F14 0%, #161A22 100%);
+}
+.real-a-2::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    radial-gradient(circle 1px at 20% 30%, rgba(232,234,240,0.5), transparent),
+    radial-gradient(circle 1px at 50% 20%, rgba(232,234,240,0.7), transparent),
+    radial-gradient(circle 1px at 80% 35%, rgba(232,234,240,0.4), transparent),
+    radial-gradient(circle 1px at 30% 60%, rgba(78,205,196,0.6), transparent),
+    radial-gradient(circle 1px at 70% 50%, rgba(232,234,240,0.5), transparent),
+    radial-gradient(circle 2px at 50% 45%, rgba(46,204,138,0.9), transparent);
+}
+.real-a-2::after {
+  content: '◆';
+  position: absolute; top: 45%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  color: var(--emerald);
+  text-shadow: 0 0 30px rgba(46,204,138,0.8);
+}
+
+/* Direction B — Enhanced with multi-accent semantic */
+.real-b-1 {
+  background:
+    radial-gradient(circle at 25% 25%, rgba(46,204,138,0.4) 0%, transparent 32%),
+    radial-gradient(circle at 75% 30%, rgba(74,142,245,0.3) 0%, transparent 32%),
+    radial-gradient(circle at 50% 80%, rgba(255,184,77,0.22) 0%, transparent 40%),
+    linear-gradient(135deg, #0A0C10 0%, #161A22 50%, #0A0C10 100%);
+}
+.real-b-1::before {
+  content: 'Dream';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 200;
+  font-size: clamp(48px, 9vw, 88px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #F0F2F8 0%, #2ECC8A 50%, #4A8EF5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+}
+.real-b-2 {
+  background:
+    linear-gradient(180deg, #0A0C10 0%, #14181F 100%);
+}
+.real-b-2::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(46,204,138,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,142,245,0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at 50% 50%, black 10%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 10%, transparent 70%);
+}
+.real-b-2::after {
+  content: '';
+  position: absolute; top: 50%; left: 20%; right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9A84C 30%, #2ECC8A 50%, #4A8EF5 70%, transparent);
+  box-shadow: 0 0 24px rgba(201,168,76,0.4);
+  transform: translateY(-50%);
+}
+
+/* Direction C — Cream editorial */
+.real-c-1 {
+  background:
+    radial-gradient(circle at 70% 30%, rgba(199,87,50,0.42) 0%, transparent 30%),
+    radial-gradient(circle at 30% 75%, rgba(46,84,64,0.4) 0%, transparent 35%),
+    linear-gradient(135deg, #F4EBDD 0%, #E8DAC5 100%);
+}
+.real-c-1::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180px; height: 180px;
+  border: 1px solid rgba(46,84,64,0.45);
+  border-radius: 50%;
+}
+.real-c-1::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px; height: 14px;
+  background: #C75732;
+  border-radius: 50%;
+  box-shadow:
+    -90px -50px 0 -4px #2E5440,
+    85px -65px 0 -5px #C75732,
+    -70px 80px 0 -4px #2E5440,
+    95px 40px 0 -5px #C75732,
+    -10px -110px 0 -3px #2E5440,
+    -50px 20px 0 -6px #8E7B5E;
+}
+.real-c-1 .meta { color: #1A1E18; background: rgba(244,235,221,0.7); }
+.real-c-2 {
+  background: linear-gradient(180deg, #F4EBDD 0%, #D9CDB8 100%);
+}
+.real-c-2::before {
+  content: 'Hold it, then release.';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(22px, 4vw, 36px);
+  line-height: 1.2;
+  color: #2E5440;
+  text-align: center;
+  letter-spacing: -0.025em;
+  width: 80%;
+}
+.real-c-2::after {
+  content: '';
+  position: absolute;
+  bottom: 18%; left: 50%;
+  transform: translateX(-50%);
+  width: 40px; height: 1px;
+  background: #C75732;
+}
+.real-c-2 .meta { color: #1A1E18; background: rgba(244,235,221,0.7); }
+
+/* DO / DON'T grid per direction */
+.dodont {
+  display: grid; grid-template-columns: 1fr; gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+@media (min-width: 800px) { .dodont { grid-template-columns: 1fr 1fr; } }
+.dodont-col {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 1.8rem;
+}
+.dodont-col h4 {
+  font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 1.2rem;
+}
+.dodont-col.do h4 { color: var(--emerald); }
+.dodont-col.dont h4 { color: var(--amber); }
+.dodont-col ul { list-style: none; display: grid; gap: 0.7rem; }
+.dodont-col li { display: grid; grid-template-columns: 16px 1fr; gap: 0.7rem; font-size: 0.9rem; line-height: 1.5; }
+.dodont-col.do li::before { content: '+'; color: var(--emerald); font-weight: 700; }
+.dodont-col.dont li::before { content: '−'; color: var(--amber); font-weight: 700; }
+
+/* Reference products grid */
+.references {
+  display: grid; grid-template-columns: 1fr; gap: 1rem;
+  margin-bottom: 4rem;
+}
+@media (min-width: 800px) { .references { grid-template-columns: repeat(3, 1fr); } }
+.ref-card {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 1.4rem;
+}
+.ref-card .name {
+  font-family: var(--font-display); font-weight: 400; font-size: 1.2rem;
+  letter-spacing: -0.01em; margin-bottom: 0.4rem;
+}
+.ref-card .why {
+  font-family: var(--font-mono); font-size: 0.65rem;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--emerald);
+  margin-bottom: 0.8rem;
+}
+.ref-card p { color: var(--slate); font-size: 0.86rem; line-height: 1.55; }
+
+/* "Choose Direction X if..." card */
+.choose-if {
+  background: linear-gradient(180deg, var(--deep-navy) 0%, var(--abyss) 100%);
+  border: 1px solid var(--emerald);
+  border-radius: 6px;
+  padding: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 4rem;
+}
+.choose-if .pill {
+  font-family: var(--font-mono); font-size: 0.7rem;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--emerald);
+  margin-bottom: 1.5rem; display: inline-block;
+}
+.choose-if h4 {
+  font-family: var(--font-display); font-weight: 300; font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+  line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.8rem;
+}
+.choose-if h4 em { font-style: italic; color: var(--emerald); }
+.choose-if ul { list-style: none; display: grid; gap: 1.2rem; }
+.choose-if li {
+  display: grid; grid-template-columns: auto 1fr; gap: 1rem;
+  padding-left: 0; font-size: 1rem; line-height: 1.55; color: var(--off-white);
+}
+.choose-if li::before {
+  content: '◆';
+  color: var(--emerald);
+  font-size: 0.75rem;
+  padding-top: 6px;
+}
+
+/* Change log table for Direction B */
+.changelog {
+  overflow-x: auto;
+  margin-bottom: 4rem;
+  border: 1px solid var(--void);
+  border-radius: 6px;
+}
+.changelog table { width: 100%; border-collapse: collapse; min-width: 720px; font-size: 0.88rem; }
+.changelog th, .changelog td { padding: 1rem 1.2rem; text-align: left; border-bottom: 1px solid var(--void); vertical-align: top; }
+.changelog th {
+  background: var(--charcoal);
+  font-family: var(--font-mono); font-size: 0.66rem;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); font-weight: 500;
+}
+.changelog tr:last-child td { border-bottom: none; }
+.changelog td { color: var(--off-white); }
+.changelog td.aspect { color: var(--slate); font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.05em; }
+.changelog td.from { color: var(--slate); }
+.changelog td.to { color: var(--emerald); }
+.changelog td.reason { color: var(--off-white); font-size: 0.85rem; line-height: 1.5; }
+
+/* Mood compositions (abstract visual elements representing each direction) */
+.mood-compositions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+@media (min-width: 800px) { .mood-compositions { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 320px 320px; } 
+  .mood-compositions > :first-child { grid-row: span 2; }
+}
+.mood-img {
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  border: 1px solid var(--void);
+  display: flex; align-items: flex-end;
+  padding: 1.4rem;
+}
+.mood-img .label {
+  font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ivory); position: relative; z-index: 2;
+  background: rgba(0,0,0,0.3); padding: 0.4rem 0.7rem; border-radius: 3px; backdrop-filter: blur(8px);
+}
+
+/* Direction A — The Gemstone (dark/emerald, David's existing world) */
+.mood-a-1 {
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(46,204,138,0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(78,205,196,0.15) 0%, transparent 60%),
+    linear-gradient(135deg, #0D0F14 0%, #1A1F2E 100%);
+}
+.mood-a-1::before {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);
+  width: 180px; height: 180px;
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--teal) 100%);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  opacity: 0.85;
+  box-shadow: 0 0 80px var(--emerald-glow);
+  animation: gemFloat 6s ease-in-out infinite;
+}
+.mood-a-1::after {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);
+  width: 240px; height: 240px;
+  border: 1px solid rgba(46,204,138,0.3);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+@keyframes gemFloat { 50% { transform: translate(-50%, -54%) rotate(45deg); } }
+
+.mood-a-2 {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(78,205,196,0.3) 0%, transparent 50%),
+    linear-gradient(180deg, #161A22 0%, #0D0F14 100%);
+}
+.mood-a-2::before {
+  content: ''; position: absolute; inset: 20%;
+  background: conic-gradient(from 0deg, var(--emerald), var(--teal), var(--emerald), var(--teal));
+  filter: blur(40px); opacity: 0.5;
+}
+.mood-a-3 {
+  background: linear-gradient(135deg, #0D0F14 0%, #1E2230 100%);
+}
+.mood-a-3::before {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 70%; height: 1px; background: linear-gradient(90deg, transparent, var(--emerald), transparent);
+}
+.mood-a-3::after {
+  content: '◆'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 2rem; color: var(--emerald);
+}
+
+/* Direction B — Enhanced Current (same DNA, serif elevation) */
+.mood-b-1 {
+  background:
+    radial-gradient(ellipse at 60% 40%, rgba(46,204,138,0.18) 0%, transparent 55%),
+    linear-gradient(165deg, #0F1219 0%, #0A0C12 60%, #0D0F14 100%);
+  display: grid; place-items: center;
+}
+.mood-b-1::before {
+  content: 'Dream'; font-family: var(--font-display); font-style: italic; font-weight: 200;
+  font-size: clamp(4rem, 12vw, 9rem); line-height: 1;
+  background: linear-gradient(135deg, var(--ivory) 0%, var(--emerald) 60%, var(--teal) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  letter-spacing: -0.04em; opacity: 0.92;
+  position: relative; z-index: 2;
+}
+.mood-b-2 {
+  background: linear-gradient(180deg, #161A22 0%, #0D0F14 100%);
+  align-items: stretch; padding: 0;
+}
+.mood-b-2 .gridlines {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(46,204,138,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46,204,138,0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+}
+.mood-b-2 .figure {
+  position: absolute; bottom: -20%; right: -10%;
+  width: 80%; aspect-ratio: 1;
+  background: radial-gradient(circle at 30% 30%, var(--emerald), transparent 70%);
+  filter: blur(60px); opacity: 0.4;
+}
+.mood-b-3 {
+  background: var(--charcoal);
+  display: flex; align-items: center; justify-content: center;
+}
+.mood-b-3::before {
+  content: ''; width: 80%; height: 1px;
+  background: var(--emerald); transform: rotate(-12deg);
+  box-shadow: 0 0 20px var(--emerald-glow);
+}
+
+/* Direction C — Ceremonial Warmth (cream, forest green, terracotta) */
+.mood-c-1 {
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(199, 87, 50, 0.4) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 80%, rgba(46, 84, 64, 0.5) 0%, transparent 55%),
+    linear-gradient(135deg, #F4EBDD 0%, #E8DAC5 100%);
+}
+.mood-c-1::before {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 220px; height: 220px;
+  border: 1px solid rgba(46, 84, 64, 0.5);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 80px rgba(46,84,64,0.15),
+    0 0 0 20px rgba(199, 87, 50, 0.1);
+}
+.mood-c-1::after {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 8px; height: 8px;
+  background: #2E5440;
+  border-radius: 50%;
+  box-shadow:
+    -60px -40px 0 -2px #2E5440,
+    60px -50px 0 -3px #C75732,
+    -50px 60px 0 -2px #2E5440,
+    70px 30px 0 -3px #C75732,
+    0 -80px 0 -1px #2E5440;
+}
+.mood-c-1 .label { background: rgba(0,0,0,0.4); }
+.mood-c-2 {
+  background: linear-gradient(180deg, #F4EBDD 0%, #D9CDB8 100%);
+}
+.mood-c-2::before {
+  content: 'Hold it. Then release.';
+  font-family: var(--font-display); font-style: italic; font-weight: 300;
+  font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+  color: #2E5440; line-height: 1.2;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  max-width: 80%; text-align: center;
+  letter-spacing: -0.02em;
+}
+.mood-c-2 .label { color: #2E5440; background: rgba(244,235,221,0.7); }
+.mood-c-3 {
+  background:
+    radial-gradient(circle at 50% 50%, #C75732 0%, #8E3D22 70%);
+  display: grid; place-items: center;
+}
+.mood-c-3::before {
+  content: ''; width: 50%; height: 50%;
+  background: rgba(244,235,221,0.95);
+  border-radius: 50%;
+  box-shadow: 0 8px 60px rgba(0,0,0,0.3);
+}
+.mood-c-3 .label { background: rgba(0,0,0,0.4); }
+
+/* Palette swatches */
+.palette {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 3.5rem;
+}
+@media (min-width: 600px) { .palette { grid-template-columns: repeat(5, 1fr); } }
+.swatch {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--void);
+}
+.swatch-color { aspect-ratio: 1.3; }
+.swatch-info { padding: 0.7rem 0.85rem; background: var(--deep-navy); }
+.swatch-info .name { font-size: 0.82rem; font-weight: 500; }
+.swatch-info .hex { font-family: var(--font-mono); font-size: 0.7rem; color: var(--slate); margin-top: 0.2rem; letter-spacing: 0.02em; }
+
+/* Type specimen */
+.specimen-grid { display: grid; grid-template-columns: 1fr; gap: 1.2rem; margin-bottom: 3.5rem; }
+@media (min-width: 800px) { .specimen-grid { grid-template-columns: 1fr 1fr; } }
+.specimen {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2rem 2rem 2.2rem;
+}
+.specimen .role { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 1.2rem; }
+.specimen .role span { color: var(--emerald); }
+.specimen .sample-large { font-size: clamp(2.5rem, 6vw, 4rem); line-height: 0.95; letter-spacing: -0.035em; margin-bottom: 1rem; font-weight: 300; }
+.specimen .sample-small { font-size: 0.95rem; color: var(--slate); line-height: 1.5; }
+
+/* Direction-specific specimen fonts */
+.specimen.serif .sample-large { font-family: var(--font-display); font-style: italic; }
+.specimen.sans .sample-large { font-family: var(--font-body); font-weight: 500; letter-spacing: -0.02em; }
+
+/* Rationale block */
+.rationale {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+@media (min-width: 800px) { .rationale { grid-template-columns: 1fr 1fr; } }
+.rationale h4 { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 1rem; }
+.rationale h4 .y { color: var(--emerald); }
+.rationale h4 .n { color: var(--amber); }
+.rationale ul { list-style: none; display: grid; gap: 0.65rem; font-size: 0.92rem; line-height: 1.5; }
+.rationale .yes li { display: grid; grid-template-columns: 14px 1fr; gap: 0.7rem; }
+.rationale .yes li::before { content: '+'; color: var(--emerald); font-weight: 600; }
+.rationale .no li { display: grid; grid-template-columns: 14px 1fr; gap: 0.7rem; }
+.rationale .no li::before { content: '−'; color: var(--amber); font-weight: 600; }
+
+/* Recommendation panel */
+.recommendation {
+  background: linear-gradient(180deg, var(--deep-navy) 0%, var(--abyss) 100%);
+  border: 1px solid var(--emerald);
+  border-radius: 6px;
+  padding: clamp(2.5rem, 5vw, 4rem);
+  position: relative;
+  overflow: hidden;
+}
+.recommendation::before {
+  content: ''; position: absolute; top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, var(--emerald-glow), transparent 60%);
+  filter: blur(40px); pointer-events: none;
+}
+.recommendation .label {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--emerald); margin-bottom: 1.8rem;
+}
+.recommendation h3 { font-family: var(--font-display); font-weight: 300; font-size: clamp(2rem, 4.5vw, 3.2rem); line-height: 1.05; letter-spacing: -0.025em; margin-bottom: 1.8rem; }
+.recommendation h3 em { font-style: italic; color: var(--emerald); }
+.recommendation .body { font-size: 1.05rem; line-height: 1.65; color: var(--off-white); max-width: 64ch; position: relative; }
+.recommendation .body p + p { margin-top: 1.1em; }
+.recommendation .body p strong { color: var(--emerald); font-weight: 500; }
+
+/* ============================================================
+   CODE REVIEW VIEW
+   ============================================================ */
+.cr-hero { padding: clamp(4rem, 8vw, 6rem) 0; border-bottom: 1px solid var(--void); }
+.cr-hero .repo {
+  font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.05em; color: var(--slate); margin-top: 1.5rem;
+}
+.cr-hero .repo b { color: var(--emerald); }
+
+.completion-overall {
+  background: var(--deep-navy); border: 1px solid var(--void); border-radius: 6px; padding: clamp(2rem, 4vw, 3rem);
+  display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: center; margin-bottom: 4rem;
+}
+@media (min-width: 800px) { .completion-overall { grid-template-columns: 1fr 1.3fr; } }
+.donut { position: relative; width: 220px; aspect-ratio: 1; margin: 0 auto; }
+.donut svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.donut .track { fill: none; stroke: var(--void); stroke-width: 12; }
+.donut .bar { fill: none; stroke: var(--emerald); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1.2s var(--ease); }
+.donut .inner { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.donut .pct { font-family: var(--font-display); font-weight: 300; font-size: 3.5rem; line-height: 1; letter-spacing: -0.03em; color: var(--off-white); }
+.donut .lbl { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); margin-top: 0.35rem; }
+.completion-summary p { color: var(--slate); font-size: 1.02rem; line-height: 1.6; max-width: 56ch; }
+.completion-summary p + p { margin-top: 1em; }
+.completion-summary p strong { color: var(--off-white); font-weight: 500; }
+
+/* Per-feature progress */
+.features { display: grid; gap: 1.2rem; }
+.feature {
+  background: var(--deep-navy);
+  border: 1px solid var(--void);
+  border-radius: 6px;
+  padding: 1.3rem 1.6rem;
+}
+.feature-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; gap: 1rem; }
+.feature-head .name { font-weight: 500; font-size: 0.98rem; }
+.feature-head .pct { font-family: var(--font-mono); font-size: 0.78rem; color: var(--emerald); letter-spacing: 0.05em; }
+.feature-bar { height: 4px; background: var(--void); border-radius: 2px; overflow: hidden; }
+.feature-bar .fill {
+  height: 100%; background: linear-gradient(90deg, var(--emerald) 0%, var(--teal) 100%);
+  width: 0; transition: width 1.4s var(--ease);
+}
+.feature .desc { color: var(--slate); font-size: 0.85rem; margin-top: 0.7rem; line-height: 1.55; }
+
+/* Trust score */
+.trust-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+@media (min-width: 700px) { .trust-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .trust-grid { grid-template-columns: repeat(5, 1fr); } }
+.trust-card {
+  background: var(--deep-navy); border: 1px solid var(--void); border-radius: 6px; padding: 1.6rem;
+}
+.trust-card .dim { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 1rem; }
+.trust-card .score { font-family: var(--font-display); font-weight: 300; font-size: 2.8rem; line-height: 1; letter-spacing: -0.025em; margin-bottom: 0.4rem; }
+.trust-card .score .total { color: var(--slate); font-size: 1.1rem; }
+.trust-card .note { color: var(--slate); font-size: 0.82rem; line-height: 1.5; margin-top: 0.8rem; }
+.trust-card.high .score { color: var(--emerald); }
+.trust-card.mid .score { color: var(--amber); }
+.trust-card.low .score { color: var(--crimson); }
+
+.trust-aggregate {
+  display: flex; align-items: baseline; gap: 1rem; margin-top: 2rem; padding: 1.6rem; background: var(--deep-navy); border: 1px solid var(--void); border-radius: 6px;
+}
+.trust-aggregate .label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); }
+.trust-aggregate .big { font-family: var(--font-display); font-weight: 300; font-size: 2.4rem; line-height: 1; letter-spacing: -0.025em; color: var(--emerald); }
+.trust-aggregate .big small { color: var(--slate); font-size: 1rem; }
+
+/* Gap analysis tiers */
+.tiers { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 900px) { .tiers { grid-template-columns: repeat(3, 1fr); } }
+.tier-card {
+  background: var(--deep-navy); border: 1px solid var(--void); border-radius: 6px; padding: 1.8rem; position: relative;
+}
+.tier-card.critical { border-color: rgba(229,90,90,0.4); }
+.tier-card .label { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 0.7rem; }
+.tier-card.critical .label { color: var(--crimson); }
+.tier-card.enhanced .label { color: var(--amber); }
+.tier-card.future .label { color: var(--teal); }
+.tier-card h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.4rem; line-height: 1.2; letter-spacing: -0.01em; margin-bottom: 0.6rem; }
+.tier-card .timing { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.15em; color: var(--slate); margin-bottom: 1.4rem; }
+.tier-card ul { list-style: none; display: grid; gap: 0.7rem; }
+.tier-card li { display: grid; grid-template-columns: 14px 1fr; gap: 0.7rem; font-size: 0.88rem; line-height: 1.45; color: var(--off-white); }
+.tier-card.critical li::before { content: '!'; color: var(--crimson); font-weight: 700; }
+.tier-card.enhanced li::before { content: '+'; color: var(--amber); font-weight: 700; }
+.tier-card.future li::before { content: '◇'; color: var(--teal); font-size: 0.8rem; padding-top: 2px; }
+
+/* Build timeline */
+.timeline {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 2rem; row-gap: 1rem;
+  margin-top: 3rem;
+}
+.timeline-row {
+  display: contents;
+}
+.timeline-row .marker {
+  display: flex; align-items: center; gap: 1rem;
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.15em; color: var(--emerald);
+}
+.timeline-row .marker::after { content: ''; width: 80px; height: 1px; background: var(--void); }
+.timeline-row .item {
+  background: var(--deep-navy); border: 1px solid var(--void); border-radius: 6px; padding: 1.2rem 1.5rem;
+}
+.timeline-row .item b { display: block; font-weight: 500; margin-bottom: 0.3rem; }
+.timeline-row .item span { color: var(--slate); font-size: 0.88rem; }
+
+/* ============================================================
+   ANIMATIONS / REVEALS
+   ============================================================ */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out); }
+.reveal.in { opacity: 1; transform: none; }
+
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     HEADER
+     ========================================================= -->
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="gem">◆</span>
+      <strong>DreamCoach</strong>
+      <span class="sep">/</span>
+      <span class="meta">Proposal · 3PR · 2026</span>
+    </div>
+    <nav class="nav" aria-label="Primary">
+      <button data-view="proposal" class="active"><span class="dot"></span>Proposal</button>
+      <button data-view="moodboard">Moodboard</button>
+      <button data-view="review">Code Review</button>
+    </nav>
+  </div>
+</header>
+
+<!-- =========================================================
+     PROPOSAL VIEW
+     ========================================================= -->
+<main class="view active" id="view-proposal">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="prepared">
+        <span class="dot"></span>
+        Prepared for David King-Reubens · Founder, DreamCoach
+      </div>
+      <h1>
+        Turn your dreams<br>into <em>daily practice.</em>
+      </h1>
+      <p class="subhead">
+        A psychologically sophisticated coaching platform for ambitious people who take their dreams seriously — and want a tool that takes them seriously in return.
+      </p>
+      <div class="hero-ctas">
+        <a href="#vision" class="btn btn-primary">View proposal <span class="arrow">→</span></a>
+        <button class="btn btn-secondary" data-go="moodboard">View moodboard <span class="arrow">→</span></button>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="v" data-count="3" data-suffix="–4 wks">0</span>
+          <div class="l">Production build</div>
+          <div class="s">3 phases · ready</div>
+        </div>
+        <div class="hero-stat">
+          <span class="v" data-count="13" data-prefix="£" data-suffix="B">£0</span>
+          <div class="l">Market size 2025</div>
+          <div class="s">14.4% CAGR</div>
+        </div>
+        <div class="hero-stat">
+          <span class="v" data-count="12.4" data-suffix="×">0×</span>
+          <div class="l">LTV : CAC base case</div>
+          <div class="s">Strong unit economics</div>
+        </div>
+        <div class="hero-stat">
+          <span class="v" data-count="62" data-suffix="%">0%</span>
+          <div class="l">Already built</div>
+          <div class="s">Existing prototype</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee">
+    <div class="marquee-track">
+      <span>Dream OS — not a habit tracker</span>
+      <span>Live AI coaching</span>
+      <span>Dream Teams · 5-person accountability</span>
+      <span>Compassionate Release framework</span>
+      <span>Resistance archetypes</span>
+      <span>Built in UK · Powered by Dave</span>
+      <span>3–4 week build · production-ready</span>
+      <span>Dream OS — not a habit tracker</span>
+      <span>Live AI coaching</span>
+      <span>Dream Teams · 5-person accountability</span>
+      <span>Compassionate Release framework</span>
+      <span>Resistance archetypes</span>
+      <span>Built in UK · Powered by Dave</span>
+      <span>3–4 week build · production-ready</span>
+    </div>
+  </div>
+
+  <!-- VISION -->
+  <section class="section" id="vision">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">01</span>The Vision</div>
+        <h2>The gap between people and their dreams isn't capability. <em>It's daily consistency.</em></h2>
+      </div>
+      <div class="grid-2 reveal">
+        <div>
+          <div class="eyebrow" style="margin-bottom: 1.2rem">What DreamCoach is</div>
+          <p class="body-text">
+            DreamCoach is a <strong style="color:var(--off-white);font-weight:500">dream operating system</strong> — not a habit tracker. While competitors track tasks and chores, DreamCoach operates at the level of meaning. It asks: what do you actually want your life to look like? Then it holds you in daily practice while that vision is built.
+          </p>
+          <p class="body-text" style="margin-top:1.1em">
+            The product positions closer to premium digital coaching than habit tracking — unlocking a higher-value audience and a higher-value price point. Psychological depth (resistance archetypes, viability scoring, AI-guided coaching) wrapped in a dark, premium interface built for people who take themselves seriously.
+          </p>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 1.2rem">Why now</div>
+          <p class="body-text">
+            The habit-tracking market was <strong style="color:var(--off-white);font-weight:500">£1.7B in 2024</strong> and is projected to reach £5.5B by 2033 at 14.2% CAGR. 58% of new apps now integrate AI — but most are doing it superficially.
+          </p>
+          <p class="body-text" style="margin-top:1.1em">
+            The window for a psychologically grounded, AI-enhanced dream accountability app is open. The market is moving from toxic positivity toward genuine self-awareness tools. DreamCoach's psychological sophistication is ahead of where the category is going.
+          </p>
+        </div>
+      </div>
+
+      <div class="pullquote reveal">
+        <q>No app in this market addresses the full lifecycle of a dream — from articulation, through daily accountability, to either celebration or compassionate release.</q>
+        <cite>Market data · Straits Research / Global Growth Insights 2025</cite>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE GAP -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">02</span>The Gap</div>
+        <h2>Mass demand. <em>No tool that holds the full dream.</em></h2>
+      </div>
+      <div class="grid-3 reveal">
+        <div class="card gap-card">
+          <div class="icon">◇</div>
+          <span class="tag">Capability Gap</span>
+          <h3>Habit trackers — Atomic Habits, Streaks, Habitica</h3>
+          <p>Track behaviour, not meaning. Treat dreams as tasks. Gamify chores without asking why any of it matters. Engagement collapses inside 60 days.</p>
+        </div>
+        <div class="card gap-card">
+          <div class="icon">◇</div>
+          <span class="tag">Depth Gap</span>
+          <h3>Wellness apps — Calm, Headspace, Finch</h3>
+          <p>Meditation, mood, micro-content. Beautiful, but they sit on the surface of the user's life. No mechanism for the dreams underneath the day-to-day.</p>
+        </div>
+        <div class="card gap-card">
+          <div class="icon">◇</div>
+          <span class="tag">Lifecycle Gap</span>
+          <h3>Coaching platforms — BetterUp, Noom, human coaches</h3>
+          <p>Heavy, expensive, and built for arrival — not for the moments when a dream stops fitting. None of them know how to let a person walk away from a goal with dignity.</p>
+        </div>
+      </div>
+
+      <div class="pullquote reveal" style="margin-top: 4rem">
+        <q>Users want a tool that knows the difference between a goal and a dream — and treats them differently.</q>
+        <cite>Founder intake · David King-Reubens · May 2026</cite>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE SOLUTION — FULL LIFECYCLE -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">03</span>The Solution</div>
+        <h2>Built for the <em>full lifecycle</em> of a dream.</h2>
+      </div>
+      <p class="lead reveal" style="margin-bottom: 4rem">Four interconnected systems that work together. Miss one and the product doesn't land.</p>
+
+      <div class="steps reveal">
+        <div class="step">
+          <div class="step-num">01 · Articulate</div>
+          <h4>Name the dream.</h4>
+          <p>Resistance archetype assessment, viability scoring, and a structured articulation process. The dream is defined with enough precision that daily action becomes possible.</p>
+          <div class="seq">Then</div>
+        </div>
+        <div class="step">
+          <div class="step-num">02 · Practise</div>
+          <h4>Daily consistency.</h4>
+          <p>One-question daily check-in. Streak system with built-in grace days. Points compound weekly and monthly. The dream becomes a habit — held, not chased.</p>
+          <div class="seq">Then</div>
+        </div>
+        <div class="step">
+          <div class="step-num">03 · Share</div>
+          <h4>Held in community.</h4>
+          <p>Dream Teams of up to five. Different dreams, shared accountability. Daily team feeds, supportive reactions, async advice. Privacy by design — no comparison pressure.</p>
+          <div class="seq">Then</div>
+        </div>
+        <div class="step">
+          <div class="step-num">04 · Resolve</div>
+          <h4>Celebrate or release.</h4>
+          <p>Reach the dream and celebrate it. Or recognise it no longer fits and walk away with dignity through the Compassionate Release framework. Both endings are wins.</p>
+          <div class="seq"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE PRODUCT MODULES -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">04</span>Core Modules</div>
+        <h2>Four interconnected systems. <em>Each one stands alone.</em></h2>
+      </div>
+
+      <div class="grid-4 reveal">
+        <div class="module">
+          <div class="module-head">
+            <h3>Dream Articulation</h3>
+            <div class="mod-icon">◆</div>
+          </div>
+          <p class="mod-body">A guided process that turns a vague aspiration into a clearly defined dream with viability scoring and a resistance archetype. The foundation everything else builds on.</p>
+          <ul class="module-list">
+            <li>Resistance archetype assessment</li>
+            <li>Dream viability scoring</li>
+            <li>"Why this matters" depth prompts</li>
+          </ul>
+        </div>
+        <div class="module">
+          <div class="module-head">
+            <h3>Daily Check-In</h3>
+            <div class="mod-icon">◇</div>
+          </div>
+          <p class="mod-body">One question, every day. Streaks with built-in grace days so a missed day doesn't punish the user. Points compound weekly and monthly. Designed for retention without addiction patterns.</p>
+          <ul class="module-list">
+            <li>One-question daily prompt</li>
+            <li>Streak with 1–2 grace days / week</li>
+            <li>Weekly &amp; monthly point milestones</li>
+          </ul>
+        </div>
+        <div class="module">
+          <div class="module-head">
+            <h3>Dream Teams</h3>
+            <div class="mod-icon">◈</div>
+          </div>
+          <p class="mod-body">Groups of up to five people. Each member has a different dream — accountability is the shared thread. Async feed, supportive comments, gentle nudges. Intimacy over scale.</p>
+          <ul class="module-list">
+            <li>Team size capped at 5</li>
+            <li>Daily updates &amp; async advice</li>
+            <li>Team streak — collective consistency</li>
+          </ul>
+        </div>
+        <div class="module">
+          <div class="module-head">
+            <h3>Compassionate Release</h3>
+            <div class="mod-icon">◊</div>
+          </div>
+          <p class="mod-body">A structured framework for letting a dream go when it no longer fits — without the guilt or identity loss. The most differentiated module. No competitor does this with care.</p>
+          <ul class="module-list">
+            <li>Five-step reflection ritual</li>
+            <li>"What this dream taught me" capture</li>
+            <li>Permission to return, later, if right</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DREAM TEAMS DEEP-DIVE -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">05</span>Dream Teams</div>
+        <h2>Accountability through community. <em>Privacy through design.</em></h2>
+      </div>
+
+      <div class="grid-3 reveal">
+        <div class="mechanism" data-num="01">
+          <div class="label">Group formation</div>
+          <h4>Five people. Different dreams.</h4>
+          <p>Users invite up to four others. Each person brings their own dream — career change, fitness shift, creative project, whatever matters. The team isn't built around a shared goal. It's built around shared discipline.</p>
+        </div>
+        <div class="mechanism" data-num="02">
+          <div class="label">Daily shared updates</div>
+          <h4>One line a day. Held by four others.</h4>
+          <p>Each member posts a short update on their dream's progress. Members react and comment with support — not performance. Different dreams, no comparison, no competition for likes.</p>
+        </div>
+        <div class="mechanism" data-num="03">
+          <div class="label">Async advice</div>
+          <h4>Wisdom across dreams.</h4>
+          <p>Team members can ask for advice on a moment of resistance, doubt, or decision. Replies arrive when teammates can give them — not in real time. A pace built for thinking, not for chat.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPASSIONATE RELEASE -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">06</span>Compassionate Release</div>
+        <h2>The hardest dream to keep <em>is the one that no longer fits.</em></h2>
+      </div>
+
+      <p class="lead reveal" style="margin-bottom: 3rem">
+        Letting go isn't giving up. It's making room for what's next. DreamCoach is the only app in the category that treats the ending of a dream with the same care as the beginning.
+      </p>
+
+      <div class="ritual reveal">
+        <div class="ritual-step">
+          <div class="num">i</div>
+          <div>
+            <h4>Reflection — why this dream no longer serves you.</h4>
+            <p>A structured prompt sequence. The user articulates what has changed — in their life, their values, their season — that makes this dream no longer the right one. No judgement. No nudge to stay.</p>
+          </div>
+        </div>
+        <div class="ritual-step">
+          <div class="num">ii</div>
+          <div>
+            <h4>Recognition — what the dream taught you.</h4>
+            <p>Every dream pursued leaves a mark. The user captures what they learned, what they gained, what shaped them. The dream is honoured for the work it did, even though it isn't where they're going.</p>
+          </div>
+        </div>
+        <div class="ritual-step">
+          <div class="num">iii</div>
+          <div>
+            <h4>Permission — to walk away as a winner.</h4>
+            <p>Letting go is reframed not as failure but as agency. The language of the app explicitly frames release as a sign of self-knowledge — not a defeat. This is the psychological pivot the rest of the framework rests on.</p>
+          </div>
+        </div>
+        <div class="ritual-step">
+          <div class="num">iv</div>
+          <div>
+            <h4>Ritual — a small, deliberate act of release.</h4>
+            <p>A guided ceremony inside the app. A written goodbye, a sealed envelope animation, a slow fade. The interaction is unhurried — this is the emotionally significant moment. Motion language is ceremonial here, not transactional.</p>
+          </div>
+        </div>
+        <div class="ritual-step">
+          <div class="num">v</div>
+          <div>
+            <h4>Integration — what's next, or what's now.</h4>
+            <p>The user can start a new dream, return to dreaming later, or sit in the clarity for a while. The released dream is archived (never deleted) — the user can revisit the work it did, anytime. Permission to return is given, explicitly.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pullquote reveal" style="margin-top: 4rem">
+        <q>People find it very difficult to let go because they tie the dream to their own identity and feel like a failure instead of a winner for letting go of something which doesn't suit them at this point in their life.</q>
+        <cite>David King-Reubens · Founder intake · May 2026</cite>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI COACHING -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">07</span>AI Coaching</div>
+        <h2>AI that asks <em>better questions.</em> Not AI that gives glib answers.</h2>
+      </div>
+
+      <div class="compare reveal">
+        <div class="compare-col them">
+          <ul class="compare-list bad">
+            <li>Optimisation language — "crush your goals", "level up"</li>
+            <li>Generic motivation prompts identical across all users</li>
+            <li>No awareness of emotional state or readiness</li>
+            <li>Treats every dream as a project to be managed</li>
+            <li>No safety layer for distress signals</li>
+            <li>"You've got this!" empty encouragement</li>
+          </ul>
+        </div>
+        <div class="compare-col us">
+          <ul class="compare-list good">
+            <li>Warm, intelligent voice — believes in you quietly</li>
+            <li>Archetype-aware coaching adapts to the user's resistance pattern</li>
+            <li>Reads emotional weight in the user's daily check-ins</li>
+            <li>Knows the difference between a goal and a dream</li>
+            <li>OpenAI Moderation API gates emotionally sensitive content</li>
+            <li>Compassionate, never clinical, never saccharine</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="muted reveal" style="margin-top:2.5rem;font-size:0.9rem;">
+        <strong style="color:var(--off-white)">Technical:</strong> GPT-4o primary · Claude Sonnet 4.6 fallback · OpenAI Moderation API on all coaching messages · per-user context window includes archetype, recent check-ins, and current dream phase.
+      </p>
+    </div>
+  </section>
+
+  <!-- MARKET & COMPETITIVE LANDSCAPE -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">08</span>Market &amp; Competitors</div>
+        <h2>A market moving from <em>toxic positivity</em> to genuine self-awareness.</h2>
+      </div>
+
+      <div class="hero-stats reveal" style="margin-bottom: 4rem;">
+        <div class="hero-stat" style="padding-left:1.2rem">
+          <span class="v" data-count="13" data-prefix="£" data-suffix="B">£0</span>
+          <div class="l">Market size · 2025</div>
+          <div class="s">Habit + personal growth</div>
+        </div>
+        <div class="hero-stat">
+          <span class="v" data-count="50" data-prefix="£" data-suffix="B">£0</span>
+          <div class="l">Projected · 2035</div>
+          <div class="s">3.8× growth</div>
+        </div>
+        <div class="hero-stat">
+          <span class="v" data-count="14.4" data-suffix="%">0%</span>
+          <div class="l">Annual growth rate</div>
+          <div class="s">CAGR 2025–2035</div>
+        </div>
+        <div class="hero-stat">
+          <span class="v" data-count="58" data-suffix="%">0%</span>
+          <div class="l">Apps now AI-integrated</div>
+          <div class="s">Most superficially</div>
+        </div>
+      </div>
+
+      <div class="competitors reveal">
+        <div class="competitor">
+          <div class="head"><h4>Atomic Habits app</h4><span class="badge">● Direct</span></div>
+          <div class="vibe"><span class="label">Mechanical</span><span class="sub">System-driven · optimisation-coded</span></div>
+          <p class="desc">Habit tracker built on Clear's book methodology. Strong brand association. ~1M users. Subscription ~$5/mo. Engagement collapses past 90 days.</p>
+          <p class="gap"><b>Gap:</b> Tracks behaviour. Doesn't ask what the behaviour is for. No release path. No social layer.</p>
+        </div>
+        <div class="competitor">
+          <div class="head"><h4>Finch — Self Care</h4><span class="badge">● Adjacent</span></div>
+          <div class="vibe"><span class="label">Nurturing</span><span class="sub">Pet-companion · cute-coded self-care</span></div>
+          <p class="desc">Gamified self-care with a pet companion. Popular with Gen Z. ~4M downloads. Strong daily retention. Aesthetic skews young.</p>
+          <p class="gap"><b>Gap:</b> Surface-level wellness. No dream framework. Pet-led gamification doesn't fit a 30+ ambitious audience.</p>
+        </div>
+        <div class="competitor">
+          <div class="head"><h4>Stoic — Mindful Journal</h4><span class="badge">● Adjacent</span></div>
+          <div class="vibe"><span class="label">Reflective</span><span class="sub">Journal-led · contemplative · solo</span></div>
+          <p class="desc">Journaling app with daily prompts and mood tracking. ~$30/yr. Strong reviews. Reflective rather than progressive.</p>
+          <p class="gap"><b>Gap:</b> No action layer. Journals are private. No community, no streaks, no release framework.</p>
+        </div>
+        <div class="competitor">
+          <div class="head"><h4>BetterUp</h4><span class="badge">● Premium Coaching</span></div>
+          <div class="vibe"><span class="label">Prescriptive</span><span class="sub">Expert-led · enterprise-priced</span></div>
+          <p class="desc">Human coaching marketplace. Enterprise-led. $200+/mo. Strong outcomes for paying users. Heavy, expensive, slow.</p>
+          <p class="gap"><b>Gap:</b> Inaccessible price point. No daily mechanic. Human coaches can't be on demand at the moment of resistance.</p>
+        </div>
+        <div class="competitor">
+          <div class="head"><h4>Noom</h4><span class="badge">● Adjacent</span></div>
+          <div class="vibe"><span class="label">Corrective</span><span class="sub">Behaviour-change · clinical-coded</span></div>
+          <p class="desc">Behaviour-change platform for weight loss. ~$60/mo. CBT-informed. Aggressive marketing. ~50M downloads. Polarising reviews.</p>
+          <p class="gap"><b>Gap:</b> Single-vertical (weight). Heavy onboarding. Coaching feels scripted at scale.</p>
+        </div>
+        <div class="competitor">
+          <div class="head"><h4>Streaks &amp; Habitica</h4><span class="badge">● Direct (light)</span></div>
+          <div class="vibe"><span class="label">Tactical</span><span class="sub">Pure gamification · streak-or-die</span></div>
+          <p class="desc">Habit trackers with gamification. Habitica is RPG-themed. Streaks is iOS-native. Both ~$2–4/mo. Tactical, not psychological.</p>
+          <p class="gap"><b>Gap:</b> No meaning layer. No coaching. Pure mechanic. Excellent at what they do — but small ambition.</p>
+        </div>
+        <div class="competitor us">
+          <div class="head"><h4>DreamCoach</h4><span class="badge" style="color:var(--emerald)">★ The contrast</span></div>
+          <div class="vibe"><span class="label">Ceremonial</span><span class="sub">Meaning-led · lifecycle-aware · held in community</span></div>
+          <p class="desc">A dream operating system that holds the full lifecycle — from articulation through daily accountability to either celebration or compassionate release. Premium dark UI, AI coaching with archetype awareness, Dream Teams of five.</p>
+          <p class="gap"><b>Position:</b> No competitor in the category operates at the level of meaning. Where everyone else is optimising behaviour, DreamCoach is holding a dream.</p>
+        </div>
+      </div>
+
+      <div class="matrix-wrap reveal">
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Dream Articulation</th>
+              <th>Daily Practice</th>
+              <th>Community Layer</th>
+              <th>AI Coaching</th>
+              <th>Compassionate Release</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ours">
+              <td>DreamCoach</td>
+              <td class="yes">✓</td>
+              <td class="yes">✓</td>
+              <td class="yes">✓</td>
+              <td class="yes">✓</td>
+              <td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>Atomic Habits app</td>
+              <td class="no">✕</td>
+              <td class="yes">✓</td>
+              <td class="no">✕</td>
+              <td class="partial">~</td>
+              <td class="no">✕</td>
+            </tr>
+            <tr>
+              <td>Finch</td>
+              <td class="no">✕</td>
+              <td class="yes">✓</td>
+              <td class="no">✕</td>
+              <td class="no">✕</td>
+              <td class="no">✕</td>
+            </tr>
+            <tr>
+              <td>Stoic</td>
+              <td class="partial">~</td>
+              <td class="yes">✓</td>
+              <td class="no">✕</td>
+              <td class="partial">~</td>
+              <td class="no">✕</td>
+            </tr>
+            <tr>
+              <td>BetterUp</td>
+              <td class="yes">✓</td>
+              <td class="no">✕</td>
+              <td class="no">✕</td>
+              <td class="partial">~</td>
+              <td class="no">✕</td>
+            </tr>
+            <tr>
+              <td>Noom</td>
+              <td class="partial">~</td>
+              <td class="yes">✓</td>
+              <td class="yes">✓</td>
+              <td class="partial">~</td>
+              <td class="no">✕</td>
+            </tr>
+            <tr>
+              <td>Streaks / Habitica</td>
+              <td class="no">✕</td>
+              <td class="yes">✓</td>
+              <td class="partial">~</td>
+              <td class="no">✕</td>
+              <td class="no">✕</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-top:4rem;margin-bottom:1.5rem">Positioning · Where everyone sits</div>
+      <div class="matrix-plot reveal">
+        <div class="ax ax-t">↑ High Depth</div>
+        <div class="ax ax-b">↓ Low Depth</div>
+        <div class="ax ax-l">← Individual</div>
+        <div class="ax ax-r">Social →</div>
+        <div class="plot-inner">
+          <span class="zone-label" style="top:8%;right:8%">Category of one</span>
+          <div class="dot" style="left:14%;top:74%" data-label="Streaks"></div>
+          <div class="dot" style="left:38%;top:60%" data-label="Habitica"></div>
+          <div class="dot" style="left:52%;top:46%" data-label="Finch"></div>
+          <div class="dot" style="left:18%;top:26%" data-label="Woebot"></div>
+          <div class="dot" style="left:22%;top:54%" data-label="Calm"></div>
+          <div class="dot" style="left:62%;top:62%" data-label="Noom"></div>
+          <div class="dot" style="left:30%;top:18%" data-label="BetterUp"></div>
+          <div class="dot us" style="left:76%;top:18%" data-label="DreamCoach"></div>
+        </div>
+      </div>
+      <p class="muted reveal" style="text-align:center;margin:2rem auto 0;font-size:0.9rem;max-width:62ch">
+        Two axes: psychological depth and social accountability. DreamCoach claims the upper-right quadrant — high depth, high social — a position currently unoccupied by any direct competitor.
+      </p>
+    </div>
+  </section>
+
+  <!-- CODE REVIEW SNAPSHOT -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">09</span>Code Review</div>
+        <h2>David's built more than you think. <em>Here's exactly where.</em></h2>
+      </div>
+      <p class="lead reveal" style="margin-bottom: 3rem">
+        3PR conducted a full technical review of the DreamCoach codebase on 13 May 2026. The front-end is further along than expected — the logic layer is excellent. What's missing is the backend.
+      </p>
+
+      <div class="cr-snapshot reveal">
+        <div class="cr-snap-head">
+          <div class="cr-snap-donut">
+            <svg viewBox="0 0 100 100">
+              <circle class="track" cx="50" cy="50" r="42"></circle>
+              <circle class="bar" cx="50" cy="50" r="42" data-pct="62" stroke-dasharray="264" stroke-dashoffset="264"></circle>
+            </svg>
+            <div class="inner">
+              <div>
+                <div class="pct"><span data-count="62" data-suffix="%">0%</span></div>
+                <div class="lbl">Production-ready</div>
+              </div>
+            </div>
+          </div>
+          <div class="cr-snap-summary">
+            <p><strong>62% of the product exists today.</strong> The psychology engine, assessment flow, daily check-in, and dream release flow are all built and working. The UX copy is excellent. The logic layer is the product's core IP — and it's solid.</p>
+            <p>The gap is infrastructure, not product thinking. What we add: real auth, Supabase backend, cross-device Dream Teams sync, AI coaching layer, native packaging. <strong>The expensive thinking is done.</strong></p>
+            <div class="trust">
+              <div class="trust-num"><b>71</b><span>/ 100</span></div>
+              <div class="trust-meta">
+                <span>Trust score</span>
+                <span>Production readiness</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cr-snap-bars">
+          <div class="cr-snap-bar">
+            <div class="nm">Assessment &amp; Logic Layer</div>
+            <div class="pc">95%</div>
+            <div class="b"><div class="f" data-w="95"></div></div>
+          </div>
+          <div class="cr-snap-bar">
+            <div class="nm">Daily Check-in &amp; Streaks</div>
+            <div class="pc">90%</div>
+            <div class="b"><div class="f" data-w="90"></div></div>
+          </div>
+          <div class="cr-snap-bar">
+            <div class="nm">Compassionate Release Flow</div>
+            <div class="pc">85%</div>
+            <div class="b"><div class="f" data-w="85"></div></div>
+          </div>
+          <div class="cr-snap-bar zero">
+            <div class="nm">Authentication &amp; Backend</div>
+            <div class="pc">0%</div>
+            <div class="b"><div class="f" data-w="2"></div></div>
+          </div>
+          <div class="cr-snap-bar zero">
+            <div class="nm">Dream Teams (cross-device sync)</div>
+            <div class="pc">0%</div>
+            <div class="b"><div class="f" data-w="2"></div></div>
+          </div>
+        </div>
+
+        <div class="cr-snap-grid">
+          <div class="cr-snap-list built">
+            <h4>✓ What David built well</h4>
+            <ul>
+              <li>Logic layer is excellent — classification, archetype, insight engines complete</li>
+              <li>TypeScript types comprehensive — well ahead of spec</li>
+              <li>Storage layer solid — clean localStorage CRUD, sensible signatures</li>
+              <li>UX copy excellent — archetype descriptions, insight generation, all strong</li>
+              <li>Mobile-first layout — safe area insets, 44px+ touch targets, PWA setup</li>
+              <li>Momentum graph — custom SVG, no dependencies, works well</li>
+            </ul>
+          </div>
+          <div class="cr-snap-list gap">
+            <h4>! What needs to be added</h4>
+            <ul>
+              <li><b>Critical ·</b> User auth, multi-device sync, cross-device Dream Teams</li>
+              <li><b>Important ·</b> Push notifications, analytics, backend infrastructure</li>
+              <li><b>Polish ·</b> Tailwind consistency, test suite, repo cleanup</li>
+              <li><b>AI layer ·</b> GPT-4o coaching with archetype context, moderation gate</li>
+              <li><b>Ship ·</b> Native packaging, App Store + Play Store submission</li>
+              <li><b>Pre-launch ·</b> Stripe subscriptions, push notification system</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cr-snap-cta">
+          <button class="btn btn-secondary" data-go="review">See the full code review <span class="arrow">→</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUILD PLAN -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">10</span>Build Plan</div>
+        <h2>Production-ready in <em>3–4 weeks.</em></h2>
+      </div>
+      <p class="lead reveal" style="margin-bottom: 3rem">
+        David has already built 62% of the product. We add the backend, real Dream Teams sync, AI coaching, and ship it through the app stores. Generic agencies quote 21 weeks for this. Dave's autonomous build fleet ships it in 13–18 working days.
+      </p>
+
+      <div class="phases reveal">
+        <div class="phase">
+          <div class="ph-num">PHASE 01</div>
+          <div class="days">5–7<small>days</small></div>
+          <h4>MVP backend</h4>
+          <p>Supabase auth, schema, RLS policies. localStorage → real DB migration. Storage adapter layer. Multi-device sync foundations.</p>
+          <div class="out">Output · Working auth + sync</div>
+        </div>
+        <div class="phase">
+          <div class="ph-num">PHASE 02</div>
+          <div class="days">3–4<small>days</small></div>
+          <h4>Dream Teams sync</h4>
+          <p>Realtime team feeds. Reactions, comments, nudges. Privacy-by-design RLS for cross-team isolation. Push notifications.</p>
+          <div class="out">Output · Real social loop</div>
+        </div>
+        <div class="phase">
+          <div class="ph-num">PHASE 03</div>
+          <div class="days">3–4<small>days</small></div>
+          <h4>AI &amp; Release</h4>
+          <p>GPT-4o coaching with archetype context. OpenAI Moderation gate. Compassionate Release ritual flow with ceremonial motion.</p>
+          <div class="out">Output · AI &amp; release live</div>
+        </div>
+        <div class="phase">
+          <div class="ph-num">PHASE 04</div>
+          <div class="days">2–3<small>days</small></div>
+          <h4>Gamification + ship</h4>
+          <p>Streaks, grace days, weekly + monthly points. Push polish. App Store and Play Store submission package.</p>
+          <div class="out">Output · Live on iOS + Android</div>
+        </div>
+      </div>
+
+      <p class="muted reveal" style="margin-top:2.5rem;font-size:0.9rem;text-align:center;">
+        <strong style="color:var(--off-white)">Total · 13–18 working days · 3–4 calendar weeks.</strong> Compares to ~21 weeks at a generic agency.
+      </p>
+    </div>
+  </section>
+
+  <!-- WHAT YOU / WE PROVIDE -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">11</span>The Split</div>
+        <h2>Your vision. <em>Our execution.</em></h2>
+      </div>
+
+      <div class="provide-grid reveal">
+        <div class="provide-col">
+          <h3 class="you">What David provides</h3>
+          <ul>
+            <li><b>Product vision &amp; voice</b><span>The psychological framework, the brand tone, the editorial sensibility. The things only David can hold.</span></li>
+            <li><b>AI integration decisions</b><span>What the AI should and shouldn't do — final call on coaching boundaries, safety thresholds, and language.</span></li>
+            <li><b>Apple &amp; Google accounts</b><span>App Store Connect and Play Console accounts owned by David. 3PR added as admin agent.</span></li>
+            <li><b>Founder availability</b><span>One 60-minute onboarding call. Weekly 30-minute reviews during build. Async approvals via Slack.</span></li>
+            <li><b>Final approval</b><span>Sign-off at the end of each phase before the next begins. Nothing ships without explicit yes.</span></li>
+          </ul>
+        </div>
+        <div class="provide-col">
+          <h3 class="dave">What Dave provides</h3>
+          <ul>
+            <li><b>Full backend build</b><span>Supabase architecture, schema, RLS, realtime, auth. Production-grade infrastructure end-to-end.</span></li>
+            <li><b>AI integration</b><span>GPT-4o coaching layer, moderation gate, archetype-aware context windows, cost-controlled prompting.</span></li>
+            <li><b>iOS &amp; Android packaging</b><span>Native build wrapping, App Store / Play Store submission, review response, version updates.</span></li>
+            <li><b>QA &amp; verification</b><span>End-to-end QA on every release. lj-qa and lj-verifier gates before anything ships to the founder.</span></li>
+            <li><b>Ongoing engineering</b><span>Retained autonomous build fleet for feature iteration, infra scaling, partner integrations — post-launch.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MONETISATION -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">12</span>Monetisation</div>
+        <h2>Freemium that converts. <em>A revenue model built on genuine value.</em></h2>
+      </div>
+      <p class="lead reveal" style="margin-bottom: 3rem">
+        36% of habit app users already pay for premium features. The market has proven willingness. The challenge is making the free tier valuable enough to build the habit — and the premium tier valuable enough to upgrade.
+      </p>
+
+      <div class="user-pricing reveal">
+        <div class="user-tier">
+          <div class="ut-label">Tier 01 · Free</div>
+          <div class="ut-price">£0<small>Build the habit. No credit card.</small></div>
+          <div class="ut-tag">The entry point. Designed to be valuable enough to retain — restrictive enough to make Premium feel worth it.</div>
+          <ul>
+            <li>1 active dream</li>
+            <li>Basic streak tracking</li>
+            <li>Grace days included</li>
+            <li>Dream journal</li>
+            <li>1 Dream Team (5 members max)</li>
+          </ul>
+        </div>
+        <div class="user-tier featured">
+          <div class="ut-label">Tier 02 · Premium</div>
+          <div class="ut-price">£7.99<small>per month · £59.99/year saves 37%</small></div>
+          <div class="ut-tag">The conversion target. Where AI coaching, multiple dreams, and the full Compassionate Release ritual live. The product's revenue spine.</div>
+          <ul>
+            <li>Everything in Free</li>
+            <li>Unlimited dreams</li>
+            <li>AI Dream Coach (GPT-4o, archetype-aware)</li>
+            <li>AI Letting Go guide</li>
+            <li>Advanced analytics &amp; trends</li>
+            <li>Weekly AI narrative summary</li>
+          </ul>
+        </div>
+        <div class="user-tier">
+          <div class="ut-label">Tier 03 · Team</div>
+          <div class="ut-price">£3.99<small>per user/month · Dream Team of 5 = £19.95/mo</small></div>
+          <div class="ut-tag">The viral expansion. Each Premium user converts up to 4 teammates. K-factor of ~0.4 — organic growth baked in.</div>
+          <ul>
+            <li>Everything in Premium</li>
+            <li>Team admin dashboard</li>
+            <li>Team AI insights &amp; trends</li>
+            <li>Priority support</li>
+            <li>Shared milestone celebrations</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Unit economics · Base case</div>
+      <div class="ltv-strip reveal">
+        <div class="ltv-cell"><div class="v">12.4×</div><div class="l">LTV : CAC</div></div>
+        <div class="ltv-cell"><div class="v">14mo</div><div class="l">Avg tenure</div></div>
+        <div class="ltv-cell"><div class="v">6%</div><div class="l">Monthly churn</div></div>
+        <div class="ltv-cell"><div class="v">4%</div><div class="l">Free → Premium conversion</div></div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Revenue model · Live calculator</div>
+      <div class="calc reveal">
+        <div class="calc-head">
+          <div class="title">Project the revenue at scale.</div>
+          <div class="scenario">Base case · <span id="calc-scenario">4% conversion · £7.20 ARPU</span></div>
+        </div>
+        <div class="calc-grid">
+          <div class="calc-input">
+            <label for="calc-mau">Monthly Active Users</label>
+            <div class="mau-display"><span id="calc-mau-display">50,000</span></div>
+            <input id="calc-mau" type="range" min="1000" max="500000" step="1000" value="50000" aria-label="Monthly active users" />
+            <div class="range-ends">
+              <span>1k</span>
+              <span>500k</span>
+            </div>
+
+            <label for="calc-price" style="margin-top:2rem">Premium price · per month</label>
+            <div class="mau-display"><span id="calc-price-display">£7.99</span></div>
+            <input id="calc-price" type="range" min="2.99" max="14.99" step="0.50" value="7.99" aria-label="Monthly subscription price" />
+            <div class="range-ends">
+              <span>£2.99</span>
+              <span>£14.99</span>
+            </div>
+
+            <label for="calc-conv" style="margin-top:2rem">Free → Premium conversion</label>
+            <div class="mau-display"><span id="calc-conv-display">4%</span></div>
+            <input id="calc-conv" type="range" min="1" max="12" step="0.5" value="4" aria-label="Conversion rate" />
+            <div class="range-ends">
+              <span>1%</span>
+              <span>12%</span>
+            </div>
+          </div>
+          <div class="calc-output">
+            <div class="row">
+              <div class="l">Premium subscribers</div>
+              <div class="v" id="calc-subs">2,000</div>
+            </div>
+            <div class="row primary">
+              <div class="l">Monthly Recurring Revenue</div>
+              <div class="v" id="calc-mrr">£14,400</div>
+            </div>
+            <div class="row">
+              <div class="l">Annualised revenue</div>
+              <div class="v" id="calc-arr">£172,800</div>
+            </div>
+            <div class="row">
+              <div class="l">Year-3 projection · 3.5× growth</div>
+              <div class="v" id="calc-y3">£604,800</div>
+            </div>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:1.8rem;font-size:0.85rem;text-align:center;max-width:64ch;margin-left:auto;margin-right:auto">
+          Net ARPU = list price × 0.9 (blended payment processing). Year-3 projection assumes 3.5× MAU growth on the configured value. All three sliders are live — adjust to model your scenario.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENGAGEMENT (3PR PRICING) -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">13</span>Engagement</div>
+        <h2>Simple tiers. <em>No lock-in.</em></h2>
+      </div>
+
+      <div class="pricing reveal">
+        <div class="tier">
+          <div class="name">Tier 01 · Build</div>
+          <div class="price">£14k<small>one-off · 3–4 weeks</small></div>
+          <div class="desc">The full production build. App Store + Play Store live. Backend, AI, Dream Teams sync, gamification, Compassionate Release ritual — all shipped, all yours.</div>
+          <ul>
+            <li>Phase 01–04 production build</li>
+            <li>Supabase backend + real Dream Teams sync</li>
+            <li>AI coaching layer (GPT-4o + moderation)</li>
+            <li>Full lj-qa + lj-verifier gates</li>
+            <li>App Store + Play Store submission</li>
+            <li>30-day post-launch hypercare</li>
+            <li>Full credential handover at close</li>
+          </ul>
+          <a href="#cta" class="cta">Choose Build →</a>
+        </div>
+        <div class="tier featured">
+          <div class="name">Tier 02 · Build + Launch</div>
+          <div class="price">£28k<small>one-off · build + 30-day launch sprint</small></div>
+          <div class="desc">Everything in Build, plus the full 30-day launch sprint. ASO, App Store creative, content engine, founder PR pack, paid acquisition set up and running by day one of launch.</div>
+          <ul>
+            <li>Everything in Tier 01</li>
+            <li>ASO + App Store creative pack</li>
+            <li>30-day content engine (social + email)</li>
+            <li>Press &amp; creator outreach list</li>
+            <li>Founder PR + interview prep</li>
+            <li>Day-1 paid acquisition setup</li>
+            <li>30-day post-launch monitoring</li>
+          </ul>
+          <a href="#cta" class="cta">Choose Build + Launch →</a>
+        </div>
+        <div class="tier">
+          <div class="name">Tier 03 · Build + Growth Quarter</div>
+          <div class="price">£48k<small>one-off · build + 90-day growth quarter</small></div>
+          <div class="desc">Everything above, plus 90 days of growth execution. Paid acquisition managed, creator campaigns running, podcast pitches in flight, partnership pipeline live by quarter-end.</div>
+          <ul>
+            <li>Everything in Tier 02</li>
+            <li>90-day paid acquisition management</li>
+            <li>Creator &amp; influencer campaigns</li>
+            <li>Podcast booking pitch list (12+ shows)</li>
+            <li>Partnership pipeline development</li>
+            <li>Monthly investor-ready metrics pack</li>
+            <li>Quarter-end handover &amp; growth playbook</li>
+          </ul>
+          <a href="#cta" class="cta">Choose Growth Quarter →</a>
+        </div>
+      </div>
+
+      <p class="muted reveal" style="text-align:center;margin-top:2.5rem;font-size:0.85rem;">
+        Each tier is a fixed scope, fixed price, one-off engagement · Phased payments (50/30/20) available · All pricing GBP, excl. VAT.
+      </p>
+    </div>
+  </section>
+
+  <!-- THE TEAM -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">14</span>The Team</div>
+        <h2>One client. <em>One Dave. One fleet.</em></h2>
+      </div>
+      <p class="lead reveal" style="margin-bottom: 3.5rem">
+        Dave is 3PR's autonomous AI operating system. You brief in plain English. Dave routes to the agents below, executes, and reports back. No team to manage. No dashboards to learn.
+      </p>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.5rem;color:var(--emerald)">◆ Discovery &amp; Strategy</div>
+      <div class="team-grid reveal" style="margin-bottom:3rem">
+        <div class="team-card">
+          <div class="role">Intake</div>
+          <h4>lj-intake</h4>
+          <p>Scrapes founder inputs, mockups, and existing assets. Produces BRIEF.md and BRAND-BRIEF.md. The forensic first pass that every other agent reads from.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Strategy</div>
+          <h4>lj-strategy</h4>
+          <p>Market sizing, competitive landscape, positioning, monetisation model. Owns the strategic brief and the design-direction research for lj-canvas.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Architecture</div>
+          <h4>lj-arch</h4>
+          <p>Stack decisions, DB schema, RLS policies, environments, AI integration cost modelling. The technical contract every build runs against.</p>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.5rem;color:var(--emerald)">◆ Design &amp; Creative</div>
+      <div class="team-grid reveal" style="margin-bottom:3rem">
+        <div class="team-card">
+          <div class="role">Visual design</div>
+          <h4>lj-canvas</h4>
+          <p>Moodboards, brand guidelines, UI mocks, generated imagery via fal.ai / Leonardo / Flux. Loads the David rule as a hard constraint on every dispatch.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Copy &amp; content</div>
+          <h4>lj-copy</h4>
+          <p>Product copy, UX microcopy, brand voice tuning, content calendars. Owns the warm-but-precise voice that holds the DreamCoach reading experience together.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Motion &amp; video</div>
+          <h4>lj-motion</h4>
+          <p>Launch films, product videos, motion graphics via Runway / Kling / HeyGen. The ceremonial motion language for Compassionate Release and milestone reveals.</p>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.5rem;color:var(--emerald)">◆ Engineering &amp; Build</div>
+      <div class="team-grid reveal" style="margin-bottom:3rem">
+        <div class="team-card">
+          <div class="role">Code review</div>
+          <h4>lj-dev</h4>
+          <p>Codebase audits, gap analysis, refactor planning. Reads what's there before lj-build ships anything new. Produces CODE-REVIEW.md and the migration plan.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Production build</div>
+          <h4>lj-build</h4>
+          <p>The autonomous engineering fleet. Supabase wiring, Stripe, push, CI/CD, Next.js, native packaging. Runs sprints with daily preview deploys.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Deploy &amp; infra</div>
+          <h4>lj-deploy</h4>
+          <p>Vercel + Netlify pipelines, environment separation, DNS, domain config, App Store / Play Store submission packaging. The path from main branch to production.</p>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.5rem;color:var(--emerald)">◆ Quality &amp; Verification</div>
+      <div class="team-grid reveal" style="margin-bottom:3rem">
+        <div class="team-card">
+          <div class="role">Quality assurance</div>
+          <h4>lj-qa</h4>
+          <p>End-to-end QA on every deploy. Device matrix testing, regression suite, edge cases. Pass/fail surfaced with runId and evidence before anything ships to the founder.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Claim verification</div>
+          <h4>lj-verifier</h4>
+          <p>Confirms every claim with evidence. RunIds, screenshots, response payloads, git commits, deploy hashes. Nothing claimed without proof. The anti-hallucination gate.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Security &amp; compliance</div>
+          <h4>lj-secure</h4>
+          <p>RLS audit, GDPR/COPPA review, secret hygiene, credential vaulting. Every API key vaulted, every database row scoped, every emotional content message moderation-gated.</p>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.5rem;color:var(--emerald)">◆ Growth &amp; Orchestration</div>
+      <div class="team-grid reveal">
+        <div class="team-card">
+          <div class="role">Growth &amp; marketing</div>
+          <h4>lj-growth</h4>
+          <p>ASO, paid acquisition, creator outreach, content engine, partnership pipeline, retention campaigns. Activates the moment the product is App Store-approved.</p>
+        </div>
+        <div class="team-card">
+          <div class="role">Ops &amp; monitoring</div>
+          <h4>lj-ops</h4>
+          <p>Post-launch monitoring, error tracking, crash response, weekly metrics, monthly investor reports. The always-on layer once the product is live.</p>
+        </div>
+        <div class="team-card" style="border-color:var(--emerald)">
+          <div class="role" style="color:var(--emerald)">Orchestration</div>
+          <h4>Dave</h4>
+          <p>The interface. Single Slack conversation routes work, surfaces results, holds project state across every agent above. You brief Dave. Dave handles the rest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRACK RECORD -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">15</span>Track Record</div>
+        <h2>We don't consult. <em>We ship.</em></h2>
+      </div>
+      <p class="lead reveal" style="margin-bottom: 3.5rem">
+        Three live products from the last quarter — built, shipped, in production. Each one is proof of the same operating model that will build DreamCoach.
+      </p>
+
+      <div class="team-grid reveal">
+        <div class="team-card" style="padding:2rem">
+          <div class="role">Live · Evo Capital, Philippines</div>
+          <h4>Drawly</h4>
+          <p style="margin-bottom:1rem">Compliant daily-draw platform for 100M+ Filipinos. Full-stack build: React Native + Supabase + Stripe + GCash via Checkout.com.</p>
+          <p style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.05em;color:var(--emerald)">Brief → live · under 4 weeks</p>
+        </div>
+        <div class="team-card" style="padding:2rem">
+          <div class="role">Live · Hospitality, Marbella</div>
+          <h4>Vero Marbella</h4>
+          <p style="margin-bottom:1rem">Premium hospitality brand. End-to-end identity, web presence, and booking system. From founder brief to live product in 14 days.</p>
+          <p style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.05em;color:var(--emerald)">Brief → live · 2 weeks</p>
+        </div>
+        <div class="team-card" style="padding:2rem">
+          <div class="role">Live · 3PR's own platform</div>
+          <h4>imdave.ai</h4>
+          <p style="margin-bottom:1rem">Full-stack AI operating system. Multi-agent orchestration, client project state, billing, subscription management. The platform that will build DreamCoach.</p>
+          <p style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.05em;color:var(--emerald)">In production · daily client work</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="cta">
+    <div class="wrap">
+      <div class="eyebrow reveal" style="margin-bottom:1.5rem"><span class="num">16</span>Get Started</div>
+      <h2 class="reveal">Ready to build <em>DreamCoach</em>?</h2>
+      <p class="reveal">Visit Dave to talk through scope, agree the start date, and meet the fleet. Phase 01 begins within five working days. You do not need to prepare anything.</p>
+      <div class="hero-ctas reveal" style="justify-content:center">
+        <a href="https://imdave.ai" target="_blank" rel="noopener" class="btn btn-primary">Visit Dave <span class="arrow">→</span></a>
+        <button class="btn btn-secondary" data-go="moodboard">See the moodboard <span class="arrow">→</span></button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <div>DreamCoach × 3PR · Confidential proposal · May 2026</div>
+      <div>os@3pr.uk · imdave.ai</div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- =========================================================
+     MOODBOARD VIEW
+     ========================================================= -->
+<main class="view" id="view-moodboard">
+
+  <section class="mood-hero">
+    <div class="wrap">
+      <p class="kicker">DreamCoach × David King-Reubens · Creative Review · May 2026</p>
+      <h1>Three <em>Directions.</em></h1>
+      <p class="desc">
+        Three fully developed creative options. The first faithful to David's existing visual world. The second elevates that world. The third proposes a new editorial language drawn from the gallery and the book — where David's eye already lives.
+      </p>
+    </div>
+  </section>
+
+  <!-- DIRECTION A -->
+  <section class="direction">
+    <div class="wrap">
+      <div class="dir-meta reveal">
+        <span>Direction A</span>
+        <span>·</span>
+        <span>Faithful to David's existing world</span>
+      </div>
+      <h2 class="reveal">The <em>Gemstone.</em></h2>
+      <p class="tagline reveal">Dark, ceremonial. The dream as a precious thing.</p>
+
+      <div class="dir-narrative reveal">
+        <p>This direction honours the world David already built — deep charcoal background, emerald accent, the diamond motif that appears throughout the existing mockup as a status marker for clarity and value. The dream is treated as a faceted object: precious, hard-won, multi-sided. Dark-mode-first gives the interface gravitas; the emerald is the only warmth in the frame.</p>
+        <p>It works for David because it doesn't ask him to abandon a visual instinct he already had right. It works for DreamCoach because it occupies visual territory no competitor has claimed — every habit app in the category is mint, lavender, or pastel-gradient. Dark and ceremonial is the differentiation.</p>
+        <p>In David's current build, the emerald is deployed as a <strong style="color:var(--off-white);font-weight:500">semantic positive-state indicator</strong> — it appears on the "Viable &amp; Aligned" gem card and the "What moved today" dashboard strip. The primary UI accent throughout is a steel blue used for tabs and active states. This direction preserves that exact deployment.</p>
+      </div>
+
+      <div class="real-imagery reveal">
+        <div class="real-img real-a-1"><span class="meta">Surface · Dark interface</span></div>
+        <div class="real-img real-a-2"><span class="meta">Mood · Contemplative</span></div>
+      </div>
+
+      <div class="mood-compositions reveal">
+        <div class="mood-img mood-a-1"><span class="label">Hero · Gem</span></div>
+        <div class="mood-img mood-a-2"><span class="label">Ambient · Aurora</span></div>
+        <div class="mood-img mood-a-3"><span class="label">Mark · Mono</span></div>
+      </div>
+
+      <div class="applied mock-a reveal">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="ph-notch"><span>9:41</span><div class="dots"><span></span><span></span><span></span></div></div>
+            <div class="ph-body">
+              <div class="ph-eyebrow">Dream Coach · Assessment</div>
+              <div class="ph-title">LJ Dream Coach Build</div>
+              <div class="ph-sub">Other · Carried for &lt; 1 year</div>
+              <div class="ph-tabs">
+                <div class="ph-tab active">Assessment</div>
+                <div class="ph-tab">Next Steps</div>
+                <div class="ph-tab">Profile</div>
+              </div>
+              <div class="ph-card positive">
+                <div class="h"><span class="gem">◆</span> Viable &amp; Aligned</div>
+                <div class="label">The path is clear. Block is internal.</div>
+                <div class="t" style="margin-top:6px;font-size:8px">Your dream is real, and the obstacle is psychological — not circumstantial.</div>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:6.5px;letter-spacing:0.18em;text-transform:uppercase;opacity:0.5;margin:10px 0 6px">Your Resistance Archetype</div>
+              <div class="ph-card archetype">
+                <div class="h">◇ Perfectionist Freeze</div>
+                <div class="q">"Nothing is ever ready enough."</div>
+                <div class="t">You raise the bar every time you get close. Perfection isn't a standard — it's a delay mechanism.</div>
+              </div>
+              <div class="ph-card detail">
+                <div class="label">Why this happens</div>
+                <div class="t">The moving standard isn't about quality — it's a permission structure. As long as the work isn't done, it can't be judged.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="applied-text">
+          <div class="pill">UI · Applied · Faithful</div>
+          <h4>The assessment screen, exactly as it lives today.</h4>
+          <p>This is David's current build, preserved with no changes to the visual language. The emerald gem signals the positive viability state. The blue tab underline carries primary navigation. The archetype card uses a steel-blue accent. Slate type holds the supporting copy.</p>
+          <p>The strength of this direction is <strong>zero translation cost</strong> — David ships exactly the design eye he already chose. The trade-off is that the emerald gem moment, which is currently the single most distinctive thing in the UI, is doing semantic work rather than brand work.</p>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Colour palette · Charcoal &amp; Emerald</div>
+      <div class="palette reveal">
+        <div class="swatch"><div class="swatch-color" style="background:#0D0F14"></div><div class="swatch-info"><div class="name">Abyss</div><div class="hex">#0D0F14</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#161A22"></div><div class="swatch-info"><div class="name">Deep Navy</div><div class="hex">#161A22</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#2ECC8A"></div><div class="swatch-info"><div class="name">Emerald</div><div class="hex">#2ECC8A</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#4ECDC4"></div><div class="swatch-info"><div class="name">Teal</div><div class="hex">#4ECDC4</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#E8EAF0"></div><div class="swatch-info"><div class="name">Off-white</div><div class="hex">#E8EAF0</div></div></div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Typography · clean sans across the board</div>
+      <div class="specimen-grid reveal">
+        <div class="specimen sans">
+          <div class="role">Display · <span>Geist 500</span></div>
+          <div class="sample-large">Dream coach.</div>
+          <div class="sample-small">Headlines, dream titles, archetype names. Clean modern sans. Generous letter-spacing tightening at scale.</div>
+        </div>
+        <div class="specimen sans">
+          <div class="role">Interface · <span>Geist 400</span></div>
+          <div class="sample-large" style="font-size:1.4rem;letter-spacing:-0.005em;line-height:1.4">Your check-in for today is ready. Three minutes. One question.</div>
+          <div class="sample-small" style="margin-top:1.5rem">Body copy, prompts, micro-interactions. Same typeface, different weight — keeps the system tight.</div>
+        </div>
+      </div>
+
+      <div class="rationale reveal">
+        <div>
+          <h4><span class="y">What this direction preserves</span></h4>
+          <ul class="yes">
+            <li>Zero translation cost — David ships exactly the visual eye he already chose</li>
+            <li>Emerald stays as a semantic positive-state signal (the gem card, the "what moved" strip)</li>
+            <li>Steel blue stays as primary UI accent for tabs, active states, archetype cards</li>
+            <li>Amber accent strip stays for warnings, "biggest obstacle this week" callout</li>
+            <li>The gem motif scales naturally into rewards, streaks, team icons</li>
+          </ul>
+        </div>
+        <div>
+          <h4><span class="n">Where it leaves opportunity on the table</span></h4>
+          <ul class="no">
+            <li>The gem moment is the most memorable element in the UI — it's doing semantic work, not brand work</li>
+            <li>Steel blue is the dominant accent — it's a productive choice, not a distinctive one</li>
+            <li>Single sans-serif type system leaves less editorial range for ceremonial moments</li>
+            <li>Brand identity sits in the type system, not in a colour the user remembers</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin:4rem 0 1.2rem">Brand guidelines · DO and DON'T</div>
+      <div class="dodont reveal">
+        <div class="dodont-col do">
+          <h4>+ Always do</h4>
+          <ul>
+            <li>Use uppercase + letter-spacing for all section labels</li>
+            <li>Emerald reserved for the semantic positive-state moment (Viable &amp; Aligned, What Moved Today)</li>
+            <li>Whitespace as active design element — give content room</li>
+            <li>Gem/diamond as the iconographic foundation</li>
+            <li>Dark borders instead of shadows for depth</li>
+            <li>Off-white text (#E8EAF0), never pure white — reduces eye strain</li>
+            <li>WCAG AA verified on every colour combination</li>
+          </ul>
+        </div>
+        <div class="dodont-col dont">
+          <h4>− Never do</h4>
+          <ul>
+            <li>Add gradients to backgrounds — keep surfaces flat</li>
+            <li>Use more than 2 accent colours in the same view</li>
+            <li>Round corners beyond 8px — it signals "friendly fintech"</li>
+            <li>Add decorative illustrations or mascots</li>
+            <li>Use Inter below 12px — switch to DM Mono for micro-labels</li>
+            <li>Break the uppercase label rule for sub-headings</li>
+            <li>Use emerald for anything that isn't semantic-positive</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Reference products · what to study</div>
+      <div class="references reveal">
+        <div class="ref-card">
+          <div class="name">Linear</div>
+          <div class="why">Dark UI · Minimal accent</div>
+          <p>Dark UI with restrained accent. Card interactions. Hover states. Study how they handle active/inactive states without colour chaos.</p>
+        </div>
+        <div class="ref-card">
+          <div class="name">Woebot</div>
+          <div class="why">Warm psychology · Dark mode</div>
+          <p>How to make psychological content feel warm inside dark UI. Study their conversation flow, emotional progression, and absence of harsh notification states.</p>
+        </div>
+        <div class="ref-card">
+          <div class="name">Streaks</div>
+          <div class="why">Streak visualisation · Celebration</div>
+          <p>How streaks are visualised, celebrated, and recovered. Study the celebration moment when a milestone is hit — satisfying but never garish.</p>
+        </div>
+      </div>
+
+      <div class="choose-if reveal">
+        <div class="pill">Choose Direction A if...</div>
+        <h4>You want your existing design <em>validated and elevated</em> — not replaced.</h4>
+        <ul>
+          <li>You knew what you wanted from the start. This direction ships exactly that, at Dave production quality, with zero re-brief cycles.</li>
+          <li>Speed to market matters more than creative leap. No visual pivot, no "let me think about it" — pure execution of the direction you already chose.</li>
+          <li>You believe the dark-emerald aesthetic is the strongest market position. The research in this proposal confirms you're right.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIRECTION B -->
+  <section class="direction">
+    <div class="wrap">
+      <div class="dir-meta reveal">
+        <span>Direction B</span>
+        <span>·</span>
+        <span class="rec">Recommended</span>
+        <span>·</span>
+        <span>Same DNA, Dave-elevated</span>
+      </div>
+      <h2 class="reveal">Enhanced <em>Gemstone.</em></h2>
+      <p class="tagline reveal">The same palette. An editorial soul layered on top.</p>
+
+      <div class="dir-narrative reveal">
+        <p>Same charcoal background, same emerald, same gem motif David already chose. The decisive move: <strong style="color:var(--off-white);font-weight:500">the emerald gets promoted from a semantic positive-state indicator to the primary brand accent.</strong> Where Direction A keeps the gem as a single moment, Direction B carries the emerald and the diamond mark across the brand-level surfaces — the header brand mark, hero CTAs, active stat tiles, milestone celebrations, the streak ring.</p>
+        <p>The reasoning is evidence-backed: the gem on the "Viable &amp; Aligned" card is the single most memorable element in the existing UI. It's the gesture every user remembers from the assessment. Promoting it from a one-off semantic to the brand's primary identity colour costs nothing in development and buys the product a category-of-one identity. The steel blue used for current tabs stays — but moves to secondary status, used for category and time-based navigation only.</p>
+        <p>Layered on top: an editorial variable serif (Fraunces) for display moments alongside the existing sans for interface. Italic display weight introduces gallery-grade gravitas. Motion language becomes ceremonial — slow transitions, breath in the timing, intentional pauses on the Compassionate Release ritual. The serif italic on a dark ground is the gesture an art gallery owner recognises as care.</p>
+      </div>
+
+      <div class="real-imagery reveal">
+        <div class="real-img real-b-1"><span class="meta">Surface · Enhanced dashboard</span></div>
+        <div class="real-img real-b-2"><span class="meta">Mood · Aspirational</span></div>
+      </div>
+
+      <div class="mood-compositions reveal">
+        <div class="mood-img mood-b-1"><span class="label">Hero · Editorial type</span></div>
+        <div class="mood-img mood-b-2">
+          <div class="gridlines"></div><div class="figure"></div>
+          <span class="label">Field · Aurora grid</span>
+        </div>
+        <div class="mood-img mood-b-3"><span class="label">Mark · Single line</span></div>
+      </div>
+
+      <div class="applied mock-b reveal">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="ph-notch"><span>9:41</span><div class="dots"><span></span><span></span><span></span></div></div>
+            <div class="ph-body">
+              <div class="ph-eyebrow"><span class="ph-brand-gem">◆</span>Dream Coach · Daily</div>
+              <div class="ph-title">LJ Dream Coach Build.</div>
+              <div class="ph-sub" style="font-style:italic;font-family:var(--font-display);font-size:9.5px">Perfectionist Freeze · Viable &amp; Aligned</div>
+              <div class="ph-stat-row">
+                <div class="ph-stat active"><div class="v">0d</div><div class="l">Streak</div></div>
+                <div class="ph-stat"><div class="v">0d</div><div class="l">Best</div></div>
+                <div class="ph-stat"><div class="v">3/3</div><div class="l">Grace</div></div>
+                <div class="ph-stat"><div class="v">0</div><div class="l">XP</div></div>
+              </div>
+              <div class="ph-tabs">
+                <div class="ph-tab active">Today</div>
+                <div class="ph-tab">Dashboard</div>
+                <div class="ph-tab">History</div>
+                <div class="ph-tab">Milestones</div>
+              </div>
+              <div class="ph-card realize">
+                <div class="label">Your first realisation</div>
+                <div class="q">"very accurate"</div>
+              </div>
+              <div class="ph-card ph-question">
+                <div class="ph-q">Did you do something toward your dream today?</div>
+                <div class="ph-cta primary">Yes, I moved</div>
+                <div class="ph-cta">No — and that's honest</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="applied-text">
+          <div class="pill">UI · Applied · Recommended</div>
+          <h4>The daily coach, with emerald carrying the brand.</h4>
+          <p>Same screen David already built — but the emerald moves out of its single positive-state moment and into the spine of the product. The brand gem appears next to the wordmark in the header. The active stat tile glows emerald. The active tab underline is emerald with a soft halo. The primary CTA is solid emerald with the gem prefix.</p>
+          <p>Display type shifts to Fraunces italic at hero scale — the dream title reads as something to be honoured, not as a row in a list. The check-in question becomes editorial — "<em>Did you do something toward your dream today?</em>" — set in italic display weight.</p>
+          <p><strong>Cost:</strong> zero engineering complexity. Pure type and colour treatment over the existing component tree. <strong>Buys:</strong> the most distinctive visual identity in the category.</p>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Colour palette · Semantic 4-accent system</div>
+      <div class="palette reveal">
+        <div class="swatch"><div class="swatch-color" style="background:#0A0C10"></div><div class="swatch-info"><div class="name">Void</div><div class="hex">#0A0C10</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#2ECC8A"></div><div class="swatch-info"><div class="name">Emerald · Growth</div><div class="hex">#2ECC8A</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#4A8EF5"></div><div class="swatch-info"><div class="name">Sapphire · Insight</div><div class="hex">#4A8EF5</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#FFB84D"></div><div class="swatch-info"><div class="name">Amber · Social</div><div class="hex">#FFB84D</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#C9A84C"></div><div class="swatch-info"><div class="name">Gold · Milestone</div><div class="hex">#C9A84C</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#F0F2F8"></div><div class="swatch-info"><div class="name">Off-white</div><div class="hex">#F0F2F8</div></div></div>
+      </div>
+
+      <p class="muted reveal" style="margin-bottom:3rem;font-size:0.92rem;max-width:62ch">
+        <strong style="color:var(--off-white)">Semantic colour system:</strong> Emerald carries progress and brand identity. Sapphire flags psychological insight content. Amber signals all team and social moments. Gold marks milestones and ceremony beats. Each colour does one job — users learn the language without being taught it.
+      </p>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Change log · A → B with evidence-backed rationale</div>
+      <div class="changelog reveal">
+        <table>
+          <thead>
+            <tr>
+              <th>Aspect</th>
+              <th>Direction A</th>
+              <th>Direction B</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="aspect">Display font</td>
+              <td class="from">Geist 500 sans</td>
+              <td class="to">Fraunces italic 300</td>
+              <td class="reason">Editorial serif headlines outperform on perceived quality in dark UI. Italic display is the gallery gesture.</td>
+            </tr>
+            <tr>
+              <td class="aspect">Accent system</td>
+              <td class="from">Emerald (semantic only)</td>
+              <td class="to">Emerald + Sapphire + Amber + Gold</td>
+              <td class="reason">Creates a visual language: each colour carries one meaning. Users learn the system without instruction.</td>
+            </tr>
+            <tr>
+              <td class="aspect">Emerald role</td>
+              <td class="from">Single positive-state moment</td>
+              <td class="to">Primary brand accent + identity</td>
+              <td class="reason">The gem is the most memorable thing in the UI. Promote it from semantic to brand-level.</td>
+            </tr>
+            <tr>
+              <td class="aspect">Motion design</td>
+              <td class="from">Not specified</td>
+              <td class="to">Full micro-interaction spec</td>
+              <td class="reason">Motion is a structural differentiator. Most wellness apps have none. Streak, team, ritual all get motion.</td>
+            </tr>
+            <tr>
+              <td class="aspect">Card top borders</td>
+              <td class="from">Uniform thin border</td>
+              <td class="to">Colour-coded by content type</td>
+              <td class="reason">Insight cards get Sapphire. Team cards get Amber. Visual language reinforced at every glance.</td>
+            </tr>
+            <tr>
+              <td class="aspect">Input focus state</td>
+              <td class="from">2px emerald border</td>
+              <td class="to">Sapphire left border + soft animation</td>
+              <td class="reason">Separates focus state from success state — emerald reserved for positive outcomes only.</td>
+            </tr>
+            <tr>
+              <td class="aspect">Streak milestone</td>
+              <td class="from">Static gem icon change</td>
+              <td class="to">Gold burst + ceremonial pause</td>
+              <td class="reason">Gold makes the moment matter. Pause makes the user feel it. Both reinforce the dream is precious.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Typography · Editorial display + clean interface</div>
+      <div class="specimen-grid reveal">
+        <div class="specimen serif">
+          <div class="role">Display · <span>Fraunces · Italic 300</span></div>
+          <div class="sample-large">Dream coach.</div>
+          <div class="sample-small">Variable serif with optical sizes. Editorial gravitas for hero moments, dream titles, ritual headlines. Italic at display weight is the gesture.</div>
+        </div>
+        <div class="specimen sans">
+          <div class="role">Interface · <span>Geist · 400</span></div>
+          <div class="sample-large" style="font-size:1.4rem;letter-spacing:-0.005em;line-height:1.4">Your check-in for today is ready. Three minutes. One question.</div>
+          <div class="sample-small" style="margin-top:1.5rem">Modern sans-serif for the daily interface. Clean reading, generous line-height, no editorial flourish in the body.</div>
+        </div>
+      </div>
+
+      <div class="rationale reveal">
+        <div>
+          <h4><span class="y">Why we recommend this — evidence-backed</span></h4>
+          <ul class="yes">
+            <li>The emerald gem is the most distinctive moment in David's current UI — promote it to brand-level</li>
+            <li>Costs nothing in build complexity — pure type, colour role, and motion treatment</li>
+            <li>David's existing palette is honoured — every colour he chose stays in the system</li>
+            <li>Steel blue stays as a secondary accent (category tags, time navigation) — nothing is discarded</li>
+            <li>Fraunces italic on dark is the gallery gesture David's audience reads as care</li>
+            <li>Differentiates DreamCoach from every other app in the category in a single visual decision</li>
+            <li>Ceremonial motion language fits Compassionate Release perfectly without retrofitting</li>
+          </ul>
+        </div>
+        <div>
+          <h4><span class="n">Where to hold restraint</span></h4>
+          <ul class="no">
+            <li>Emerald amplification is reserved for brand moments — semantic positive states still keep their meaning</li>
+            <li>Fraunces used only at display sizes — interface body stays Geist sans for legibility</li>
+            <li>Italic is the punctuation of the design, not the body — used sparingly</li>
+            <li>Motion ceremony for emotional moments only; productive moments stay quick</li>
+            <li>Steel blue earns its place — it doesn't compete with emerald, it supports it</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin:4rem 0 1.2rem">Brand guidelines · DO and DON'T</div>
+      <div class="dodont reveal">
+        <div class="dodont-col do">
+          <h4>+ Always do</h4>
+          <ul>
+            <li>Sapphire for psychological insight content exclusively</li>
+            <li>Amber for all team and social moments — never decorative</li>
+            <li>Gold reserved for milestones and ceremony beats only</li>
+            <li>Fraunces italic for emotional and aspirational headlines</li>
+            <li>Motion on every milestone moment — streak, team, letting go</li>
+            <li>Colour-code card top borders by content type</li>
+            <li>Emerald carries brand identity — gem mark in header, primary CTAs, active states</li>
+          </ul>
+        </div>
+        <div class="dodont-col dont">
+          <h4>− Never do</h4>
+          <ul>
+            <li>Mix accent colours within a single card</li>
+            <li>Use Fraunces for UI labels, nav, or body text</li>
+            <li>Add motion to structural elements — reserve for moments</li>
+            <li>Use Amber for anything except team and social content</li>
+            <li>Use Gold decoratively — milestone moments only</li>
+            <li>Compete the colours with each other — each does one job</li>
+            <li>Add a fifth accent — the system holds at four</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Reference products · what to study</div>
+      <div class="references reveal">
+        <div class="ref-card">
+          <div class="name">Stripe</div>
+          <div class="why">Multi-accent semantics</div>
+          <p>The gold standard for a multi-colour design system that creates meaning. Study how each colour does one job and never crosses lanes.</p>
+        </div>
+        <div class="ref-card">
+          <div class="name">Linear</div>
+          <div class="why">Editorial dark UI</div>
+          <p>Serif headlines in a dark interface. Study the perceived-quality gap between sans-only product UIs and serif-display ones.</p>
+        </div>
+        <div class="ref-card">
+          <div class="name">Arc Browser</div>
+          <div class="why">Motion as identity</div>
+          <p>How motion design becomes part of the brand — not decoration. Study what they animate, what they don't, and why each choice serves the user.</p>
+        </div>
+      </div>
+
+      <div class="choose-if reveal">
+        <div class="pill">Choose Direction B if...</div>
+        <h4>You want <em>"yes, and"</em> — the visual DNA you built, professionally elevated.</h4>
+        <ul>
+          <li>You've looked at Linear or Stripe and thought "that's the energy I want." Sapphire + Fraunces deliver that perceived quality without leaving David's dark world.</li>
+          <li>You want the app to feel like it cares — and you know that motion design and colour semantics create that emotional connection without a single word of copy.</li>
+          <li>You believe in evolution over reinvention. Every choice in this direction has a reason backed by reference or research — and David's existing instinct is honoured throughout.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIRECTION C -->
+  <section class="direction">
+    <div class="wrap">
+      <div class="dir-meta reveal">
+        <span>Direction C</span>
+        <span>·</span>
+        <span>A new editorial language — gallery-world</span>
+      </div>
+      <h2 class="reveal">Ceremonial <em>Warmth.</em></h2>
+      <p class="tagline reveal">Cream, forest, terracotta. Aesop meets the art book.</p>
+
+      <div class="dir-narrative reveal">
+        <p>This direction leaves David's existing dark world entirely and proposes a new language drawn from the visual culture he already lives in — the gallery, the monograph, the artist's studio. Cream paper grounds; deep forest green for primary signal; terracotta and burnt clay as accent. Editorial display serif throughout. Quiet, generous, unhurried — a tool that feels like reading rather than scrolling.</p>
+        <p>It carries the highest creative risk and the highest potential reward. It would be unrecognisable as a habit app in the App Store — and that's the point. Every competitor in the category trades on saturation and motion. This direction trades on stillness. For an artist's audience, that translates directly.</p>
+      </div>
+
+      <div class="real-imagery reveal">
+        <div class="real-img real-c-1"><span class="meta">Surface · Gallery warmth</span></div>
+        <div class="real-img real-c-2"><span class="meta">Mood · Editorial journal</span></div>
+      </div>
+
+      <div class="mood-compositions reveal">
+        <div class="mood-img mood-c-1"><span class="label">Hero · Solar field</span></div>
+        <div class="mood-img mood-c-2"><span class="label">Quiet · Held / release</span></div>
+        <div class="mood-img mood-c-3"><span class="label">Ritual · Moon over clay</span></div>
+      </div>
+
+      <div class="applied mock-c reveal">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="ph-notch"><span>9:41</span><div class="dots"><span></span><span></span><span></span></div></div>
+            <div class="ph-body">
+              <div class="ph-eyebrow">Daily Coach</div>
+              <div class="ph-title">LJ Dream Coach Build.</div>
+              <div class="ph-sub">Perfectionist Freeze · Viable &amp; Aligned</div>
+              <div class="ph-tabs">
+                <div class="ph-tab">Today</div>
+                <div class="ph-tab active">Dashboard</div>
+                <div class="ph-tab">History</div>
+                <div class="ph-tab">Mile.</div>
+              </div>
+              <div class="ph-card summary">
+                <div class="label">Daily summary</div>
+                <div class="h">Perfectionist Freeze</div>
+                <div class="q">"Nothing is ever ready enough."</div>
+              </div>
+              <div class="ph-card accent-forest">
+                <div class="label">Current resistance</div>
+                <div class="t">The moving standard isn't about quality — it's a permission structure.</div>
+              </div>
+              <div class="ph-card accent-forest">
+                <div class="label">What moved today</div>
+                <div class="t">No check-in yet. Today is still an open question.</div>
+              </div>
+              <div class="ph-card accent-clay">
+                <div class="label">Biggest obstacle this week</div>
+                <div class="t">The moving standard — the bar that rises as you approach it.</div>
+              </div>
+              <div class="ph-card accent-forest">
+                <div class="label">Tomorrow's smallest step</div>
+                <div class="t">Set a 25-minute timer. Stop when it rings, complete or not.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="applied-text">
+          <div class="pill" style="color:#C75732">UI · Applied · Editorial</div>
+          <h4>The dashboard, set as a quiet book.</h4>
+          <p>Same dashboard cards David already designed — same content, same hierarchy. But the entire palette and type system are translated into the gallery register. Cream paper grounds the interface. Forest green carries primary signal. Terracotta marks the warning callouts where amber sat before.</p>
+          <p>Fraunces runs throughout — display, body, and the italic resistance quote. The accent strips on each card become 2.5px hairlines in forest or clay. The interface reads more like a page from an artist's monograph than a dashboard.</p>
+          <p><strong>The bet:</strong> for an audience that includes David's gallery world, this looks like nothing else in the App Store. The risk is honest — it leaves David's existing dark world entirely. That's the trade.</p>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Colour palette · Cream, forest, clay</div>
+      <div class="palette reveal">
+        <div class="swatch"><div class="swatch-color" style="background:#F4EBDD"></div><div class="swatch-info"><div class="name">Paper</div><div class="hex">#F4EBDD</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#2E5440"></div><div class="swatch-info"><div class="name">Forest</div><div class="hex">#2E5440</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#C75732"></div><div class="swatch-info"><div class="name">Terracotta</div><div class="hex">#C75732</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#1A1E18"></div><div class="swatch-info"><div class="name">Ink</div><div class="hex">#1A1E18</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#8E7B5E"></div><div class="swatch-info"><div class="name">Stone</div><div class="hex">#8E7B5E</div></div></div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Typography · Serif throughout, generous</div>
+      <div class="specimen-grid reveal">
+        <div class="specimen serif" style="background:#F4EBDD;border-color:#D9CDB8;color:#1A1E18">
+          <div class="role" style="color:#8E7B5E">Display · <span style="color:#2E5440">Fraunces · 400 / 300i</span></div>
+          <div class="sample-large" style="color:#1A1E18">Dream coach.</div>
+          <div class="sample-small" style="color:#5E5343">Slow, intentional, editorial. The dream feels like something to be read with care.</div>
+        </div>
+        <div class="specimen serif" style="background:#F4EBDD;border-color:#D9CDB8;color:#1A1E18">
+          <div class="role" style="color:#8E7B5E">Body · <span style="color:#2E5440">Fraunces · 400</span></div>
+          <div class="sample-large" style="font-size:1.4rem;letter-spacing:-0.005em;line-height:1.5;color:#1A1E18;font-style:normal">Your check-in for today is ready. Three minutes. One question.</div>
+          <div class="sample-small" style="margin-top:1.5rem;color:#5E5343">Same serif throughout. The interface reads like a quiet book. No second typeface to fight for attention.</div>
+        </div>
+      </div>
+
+      <div class="rationale reveal">
+        <div>
+          <h4><span class="y">What this unlocks</span></h4>
+          <ul class="yes">
+            <li>Genuinely unmistakable in the App Store — zero category overlap</li>
+            <li>Aesop / Æsthetic-press / gallery-monograph reference register</li>
+            <li>Reaches David's existing creative audience directly</li>
+            <li>Compassionate Release feels like a printed ritual, not a feature</li>
+          </ul>
+        </div>
+        <div>
+          <h4><span class="n">Risks worth naming</span></h4>
+          <ul class="no">
+            <li>Largest creative leap — David's existing eye lives in dark territory</li>
+            <li>Light UI on mobile can fatigue in long sessions; dark mode toggle required</li>
+            <li>If the audience expects "wellness app", this looks like a book — that's the bet</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin:4rem 0 1.2rem">Brand guidelines · DO and DON'T</div>
+      <div class="dodont reveal">
+        <div class="dodont-col do">
+          <h4>+ Always do</h4>
+          <ul>
+            <li>Generous whitespace — more than feels comfortable, always</li>
+            <li>Fraunces for all headlines and body, Geist for labels only</li>
+            <li>Terracotta exclusively for the Compassionate Release pathway</li>
+            <li>Forest green as the primary action colour throughout</li>
+            <li>Subtle grain texture (2% opacity) on cream backgrounds</li>
+            <li>Full-bleed or nothing for imagery — no half-measures</li>
+            <li>Treat every screen like a page from a monograph</li>
+          </ul>
+        </div>
+        <div class="dodont-col dont">
+          <h4>− Never do</h4>
+          <ul>
+            <li>Use more than 3 colours in a single view</li>
+            <li>Add dark surfaces to light screens — maintain the warmth</li>
+            <li>Round corners beyond 16px — it becomes soft fintech</li>
+            <li>Use Ceremonial Gold decoratively — milestones only</li>
+            <li>Add motion to structural elements — stillness is the point</li>
+            <li>Use sans-serif for body text — Fraunces throughout</li>
+            <li>Allow ambient gradients or noise — surfaces stay still</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="eyebrow reveal" style="margin-bottom:1.2rem">Reference products · what to study</div>
+      <div class="references reveal">
+        <div class="ref-card">
+          <div class="name">Aesop</div>
+          <div class="why">Warm palette · Considered type</div>
+          <p>Every surface is a decision. Study how they use whitespace as the primary design element, and how restraint reads as confidence.</p>
+        </div>
+        <div class="ref-card">
+          <div class="name">Are.na</div>
+          <div class="why">Editorial serenity</div>
+          <p>A sophisticated content platform that trusts its users. Study how they use typography alone to signal intelligence — no decoration needed.</p>
+        </div>
+        <div class="ref-card">
+          <div class="name">The Gentlewoman</div>
+          <div class="why">Cream + forest signature</div>
+          <p>Editorial typography at maximum sophistication. Study how they treat every spread as a poster — and how the warm palette never tips into softness.</p>
+        </div>
+      </div>
+
+      <div class="choose-if reveal">
+        <div class="pill">Choose Direction C if...</div>
+        <h4>You're building DreamCoach for the <em>long term.</em></h4>
+        <ul>
+          <li>You look at the reference sites above and feel something move. That feeling is recognition — this is your taste, not just a design direction.</li>
+          <li>You want DreamCoach to look fundamentally unlike every other app in the wellness space — because you understand differentiation is a survival strategy.</li>
+          <li>You're building this product for the long term — and a design you're genuinely proud of will sustain your motivation and your users' loyalty through the hard months.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section class="direction" style="border-bottom:none">
+    <div class="wrap">
+      <div class="recommendation reveal">
+        <div class="label">Creative Director · Recommendation</div>
+        <h3>Lead with <em>Direction B.</em> Hold C as the campaign layer.</h3>
+        <div class="body">
+          <p><strong>Direction B — Enhanced Gemstone — wins as the product identity.</strong> It makes one decisive, evidence-backed move: the emerald gem that currently lives as a single positive-state moment in David's UI gets promoted to the brand's primary identity colour. Steel blue stays as a secondary accent for category and time navigation — nothing David already chose is discarded. Fraunces italic layers in for display moments. Cost: zero engineering complexity. Buys: the most distinctive identity in the category.</p>
+          <p><strong>Direction A is the no-debate fallback.</strong> If David has reservations about elevating the emerald or introducing the serif, Direction A ships his current design eye preserved exactly — emerald as positive-state semantic, steel blue as primary accent, amber for warnings. The proposal still beats every competitor in the category. Zero downside.</p>
+          <p><strong>Direction C — Ceremonial Warmth — is the marketing and campaign layer.</strong> Where Direction B is the product, Direction C is the launch film, the App Store screenshots framed as objects, the press kit, the artist editions. It plants the brand in the gallery-world cultural register David already lives in — without requiring the product itself to leave the dark world that's working.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- =========================================================
+     CODE REVIEW VIEW
+     ========================================================= -->
+<main class="view" id="view-review">
+
+  <section class="cr-hero">
+    <div class="wrap">
+      <p class="eyebrow" style="margin-bottom:1.5rem"><span class="num">◆</span>Code Review · May 2026</p>
+      <h1 class="display" style="font-size:clamp(2.5rem,6vw,5rem);letter-spacing:-0.03em">What David built. <em>What we add.</em><br>The path to production.</h1>
+      <p class="repo">Repository · <b>github.com/Davidkingreuben/dreamcoach</b> · 3PR-Solutions-Group collaborator granted</p>
+    </div>
+  </section>
+
+  <!-- Lead with strengths -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">01</span>What's Built</div>
+        <h2>David has done <em>genuinely impressive work.</em></h2>
+      </div>
+      <div class="body-text reveal" style="font-size:1.05rem;max-width:64ch">
+        <p>What David has built — alone, as a founder — is further along than the brief suggested. The psychology engine is the product's core IP and it's solid. Archetypes, classification logic, micro-step generation, and insight rendering all correctly implement the spec he wrote. The UX copy throughout is excellent — warm without being saccharine, precise without being clinical.</p>
+        <p>The front-end is well past prototype stage. The assessment flow runs end-to-end. Results render archetype, viability, and tactical coaching. Daily check-in, momentum graph, badge/XP system, and the dream release flow are all built and working today. As a concept demo on one device, the product is already compelling.</p>
+        <p>The gap is infrastructural — not product. Everything that needs to be added is the layer David could not reasonably have built alone: real accounts, real data, real multi-device sync, AI integration, App Store submission. The expensive thinking is done.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Completion -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">02</span>Completion</div>
+        <h2>Where it sits today. <em>62% complete.</em></h2>
+      </div>
+
+      <div class="completion-overall reveal">
+        <div class="donut">
+          <svg viewBox="0 0 100 100">
+            <circle class="track" cx="50" cy="50" r="42"></circle>
+            <circle class="bar" cx="50" cy="50" r="42" data-pct="62" stroke-dasharray="264" stroke-dashoffset="264"></circle>
+          </svg>
+          <div class="inner">
+            <div>
+              <div class="pct"><span data-count="62" data-suffix="%">0</span></div>
+              <div class="lbl">Production-ready</div>
+            </div>
+          </div>
+        </div>
+        <div class="completion-summary">
+          <p><strong>62% of the product exists.</strong> Roughly 38% of the work is what we add — auth, backend, real sync for Dream Teams, AI coaching layer, and App Store packaging. The expensive product thinking is done.</p>
+          <p><strong>The remaining 38% maps to 13–18 working days of Dave fleet time.</strong> Not 21 weeks. Generic agency timelines don't apply when the foundation already exists and the build team is autonomous.</p>
+        </div>
+      </div>
+
+      <div class="features reveal">
+        <div class="feature"><div class="feature-head"><div class="name">Psychology engine — archetypes, classification, insights</div><div class="pct">95%</div></div><div class="feature-bar"><div class="fill" data-w="95"></div></div><div class="desc">Core product IP. Correctly implements the spec. Ready as-is.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Assessment flow — onboarding, viability scoring</div><div class="pct">90%</div></div><div class="feature-bar"><div class="fill" data-w="90"></div></div><div class="desc">Working end-to-end. Light polish only.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Daily check-in — prompts, history, momentum</div><div class="pct">85%</div></div><div class="feature-bar"><div class="fill" data-w="85"></div></div><div class="desc">Functional. Needs server-side persistence wired in.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Dream release flow — five-step ritual</div><div class="pct">80%</div></div><div class="feature-bar"><div class="fill" data-w="80"></div></div><div class="desc">Strong UX copy. Motion polish + archive layer outstanding.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Momentum tracking — graphs, streaks, points</div><div class="pct">75%</div></div><div class="feature-bar"><div class="fill" data-w="75"></div></div><div class="desc">Visualisation works. Grace day mechanic needs hardening.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Dream Teams — UI, codes, feed shell</div><div class="pct">15%</div></div><div class="feature-bar"><div class="fill" data-w="15"></div></div><div class="desc">UI shell exists. No cross-device sync. Feature is non-functional in production.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">AI coaching layer</div><div class="pct">20%</div></div><div class="feature-bar"><div class="fill" data-w="20"></div></div><div class="desc">Hooks exist. No live model integration. No moderation gate.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Auth + accounts</div><div class="pct">0%</div></div><div class="feature-bar"><div class="fill" data-w="0"></div></div><div class="desc">localStorage only. Clear the browser, dreams gone. Not viable.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Backend + database</div><div class="pct">0%</div></div><div class="feature-bar"><div class="fill" data-w="0"></div></div><div class="desc">No Supabase, no server, no schema. Build target for Phase 01.</div></div>
+        <div class="feature"><div class="feature-head"><div class="name">Native mobile packaging</div><div class="pct">0%</div></div><div class="feature-bar"><div class="fill" data-w="0"></div></div><div class="desc">Web prototype only. App Store / Play Store submission outstanding.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust score -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">03</span>Trust Score</div>
+        <h2>How much of this can ship as-is? <em>71 / 100.</em></h2>
+      </div>
+
+      <div class="trust-grid reveal">
+        <div class="trust-card high">
+          <div class="dim">Code Quality</div>
+          <div class="score">84<span class="total">/100</span></div>
+          <div class="note">Clean, readable, modular. JSX is well-structured. UX copy lives where it should. No legacy debt visible.</div>
+        </div>
+        <div class="trust-card high">
+          <div class="dim">Completeness</div>
+          <div class="score">78<span class="total">/100</span></div>
+          <div class="note">All product-logic surfaces are present. Front-end maps the spec. The product story is intact end-to-end.</div>
+        </div>
+        <div class="trust-card mid">
+          <div class="dim">Data Reliability</div>
+          <div class="score">42<span class="total">/100</span></div>
+          <div class="note">localStorage only. No persistence guarantees. Clear browser = data loss. Critical fix for Phase 01.</div>
+        </div>
+        <div class="trust-card mid">
+          <div class="dim">Production Readiness</div>
+          <div class="score">58<span class="total">/100</span></div>
+          <div class="note">Web prototype works. Missing: auth, server, env separation, monitoring, CI/CD, native packaging.</div>
+        </div>
+        <div class="trust-card high">
+          <div class="dim">Scalability</div>
+          <div class="score">92<span class="total">/100</span></div>
+          <div class="note">Architecture is sound for the build target. No fundamental rewrite needed. Backend layered on cleanly.</div>
+        </div>
+      </div>
+
+      <div class="trust-aggregate reveal">
+        <div class="label">Aggregate</div>
+        <div class="big"><span data-count="71" data-suffix="">0</span><small> / 100</small></div>
+        <div class="muted" style="font-size:0.9rem">Strong foundation. Bring data reliability + production readiness up to ≥80 each in Phase 01–02 and the aggregate clears 86.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gap analysis tiers -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">04</span>Gap Analysis</div>
+        <h2>What we add. <em>In three tiers.</em></h2>
+      </div>
+
+      <div class="tiers reveal">
+        <div class="tier-card critical">
+          <div class="label">Critical · Ship blocker</div>
+          <h3>Must fix before any user touches it.</h3>
+          <div class="timing">Phase 01 · Days 1–7</div>
+          <ul>
+            <li>Supabase auth — email + Google OAuth</li>
+            <li>Production Postgres schema (dreams, check-ins, points, archetypes)</li>
+            <li>RLS policies on all user-owned tables</li>
+            <li>localStorage → real DB migration adapter</li>
+            <li>Environment separation (dev / staging / prod)</li>
+            <li>Dream Teams realtime sync (currently broken)</li>
+            <li>Audit-correction of START_HERE.md (currently inaccurate)</li>
+          </ul>
+        </div>
+        <div class="tier-card enhanced">
+          <div class="label">Enhanced · Lifts trust to 86+</div>
+          <h3>Brings the product to production quality.</h3>
+          <div class="timing">Phase 02–03 · Days 8–14</div>
+          <ul>
+            <li>GPT-4o coaching integration with archetype context</li>
+            <li>OpenAI Moderation API gate on emotional content</li>
+            <li>Compassionate Release ceremonial motion polish</li>
+            <li>Push notification system (APNs + FCM)</li>
+            <li>Grace day mechanic hardening + clear UX</li>
+            <li>Streak recovery prompts (warm, not punitive)</li>
+            <li>Repo cleanup — consolidate the 3 parallel JSX versions</li>
+          </ul>
+        </div>
+        <div class="tier-card future">
+          <div class="label">Future · Post-launch</div>
+          <h3>Once the product is live and learning.</h3>
+          <div class="timing">Post-launch · Month 2+</div>
+          <ul>
+            <li>Native iOS / Android packaging via Expo</li>
+            <li>App Store + Play Store submission</li>
+            <li>Stripe + RevenueCat for premium tier</li>
+            <li>Admin panel for content + archetype tuning</li>
+            <li>Analytics layer (PostHog / Supabase native)</li>
+            <li>Apple Health / Google Fit integration (optional)</li>
+            <li>Annual user-summary AI report (retention)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Build timeline -->
+  <section class="section" style="border-bottom:none">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="num">05</span>Build Timeline</div>
+        <h2>From <em>62% → 100%</em> in 3–4 weeks.</h2>
+      </div>
+
+      <div class="timeline reveal">
+        <div class="timeline-row">
+          <div class="marker">Days 01–07</div>
+          <div class="item"><b>Phase 01 · MVP backend</b><span>Supabase auth, schema, RLS, localStorage migration, env separation. Trust score moves to ~78.</span></div>
+        </div>
+        <div class="timeline-row">
+          <div class="marker">Days 08–11</div>
+          <div class="item"><b>Phase 02 · Dream Teams sync</b><span>Realtime feeds, reactions, comments, nudges. Cross-device sync working. Trust score moves to ~83.</span></div>
+        </div>
+        <div class="timeline-row">
+          <div class="marker">Days 12–15</div>
+          <div class="item"><b>Phase 03 · AI + Release</b><span>GPT-4o coaching, moderation, Compassionate Release ritual polish. Trust score ~88.</span></div>
+        </div>
+        <div class="timeline-row">
+          <div class="marker">Days 16–18</div>
+          <div class="item"><b>Phase 04 · Gamification + ship</b><span>Streaks, grace days, points, App Store / Play Store submission. Trust score 90+. Live.</span></div>
+        </div>
+      </div>
+
+      <p class="muted reveal" style="margin-top:3rem;font-size:0.9rem;text-align:center">
+        Estimates based on Dave fleet build velocity (lj-build + lj-dev concurrent, lj-qa gate on every phase). Calendar weeks include buffer for David approvals at each phase gate.
+      </p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <div>DreamCoach × 3PR · Code Review · May 2026</div>
+      <div>os@3pr.uk · imdave.ai</div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- =========================================================
+     SCRIPT
+     ========================================================= -->
+<script>
+// View switching
+const views = document.querySelectorAll('.view');
+const navBtns = document.querySelectorAll('.nav button');
+function switchView(name) {
+  views.forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  navBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  navBtns.forEach(b => {
+    const dot = b.querySelector('.dot');
+    if (dot) dot.remove();
+  });
+  const activeBtn = document.querySelector('.nav button.active');
+  if (activeBtn && !activeBtn.querySelector('.dot')) {
+    const d = document.createElement('span');
+    d.className = 'dot';
+    activeBtn.prepend(d);
+  }
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  // Re-run reveals + counters for the new view
+  initReveals();
+  initCounters();
+  initBars();
+  initDonut();
+}
+navBtns.forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
+document.querySelectorAll('[data-go]').forEach(el => el.addEventListener('click', e => {
+  e.preventDefault();
+  switchView(el.dataset.go);
+}));
+
+// Scroll reveal
+function initReveals() {
+  const els = document.querySelectorAll('.view.active .reveal');
+  els.forEach(el => el.classList.remove('in'));
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        en.target.classList.add('in');
+        io.unobserve(en.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -50px 0px', threshold: 0.05 });
+  els.forEach(el => io.observe(el));
+}
+
+// Animated counters
+function initCounters() {
+  const els = document.querySelectorAll('.view.active [data-count]');
+  els.forEach(el => {
+    const target = parseFloat(el.dataset.count);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const decimals = (el.dataset.count.split('.')[1] || '').length;
+    el.textContent = prefix + '0' + suffix;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          let start = null;
+          const dur = 1400;
+          function step(ts) {
+            if (!start) start = ts;
+            const p = Math.min((ts - start) / dur, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            const val = (target * eased).toFixed(decimals);
+            el.textContent = prefix + val + suffix;
+            if (p < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    io.observe(el);
+  });
+}
+
+// Progress bars (code review)
+function initBars() {
+  const fills = document.querySelectorAll('.view.active .feature-bar .fill');
+  fills.forEach(f => {
+    f.style.width = '0%';
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          setTimeout(() => { f.style.width = f.dataset.w + '%'; }, 100);
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    io.observe(f);
+  });
+}
+
+// Donut chart
+function initDonut() {
+  const bars = document.querySelectorAll('.view.active .donut .bar, .view.active .cr-snap-donut .bar');
+  bars.forEach(bar => {
+    const pct = parseFloat(bar.dataset.pct);
+    const r = 42;
+    const C = 2 * Math.PI * r; // ~264
+    bar.setAttribute('stroke-dasharray', C);
+    bar.setAttribute('stroke-dashoffset', C);
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          const offset = C - (pct / 100) * C;
+          setTimeout(() => bar.setAttribute('stroke-dashoffset', offset), 100);
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    io.observe(bar);
+  });
+}
+
+// Init on first load
+initReveals();
+initCounters();
+initBars();
+initDonut();
+
+// Revenue calculator
+(function initCalc() {
+  const mau = document.getElementById('calc-mau');
+  const price = document.getElementById('calc-price');
+  const conv = document.getElementById('calc-conv');
+  if (!mau || !price || !conv) return;
+  const fmt = n => '£' + Math.round(n).toLocaleString('en-GB');
+  const fmtN = n => Math.round(n).toLocaleString('en-GB');
+  const NET_KEEP = 0.90;     // 10% blended Stripe + small App Store residual
+  const Y3_MULT = 3.5;
+  function update() {
+    const v = parseInt(mau.value, 10);
+    const p = parseFloat(price.value);
+    const c = parseFloat(conv.value) / 100;
+    const netARPU = p * NET_KEEP;
+    const subs = v * c;
+    const mrr = subs * netARPU;
+    const arr = mrr * 12;
+    const y3 = arr * Y3_MULT;
+    document.getElementById('calc-mau-display').textContent = fmtN(v);
+    document.getElementById('calc-price-display').textContent = '£' + p.toFixed(2);
+    document.getElementById('calc-conv-display').textContent = c * 100 + '%';
+    document.getElementById('calc-subs').textContent = fmtN(subs);
+    document.getElementById('calc-mrr').textContent = fmt(mrr);
+    document.getElementById('calc-arr').textContent = fmt(arr);
+    document.getElementById('calc-y3').textContent = fmt(y3);
+    document.getElementById('calc-scenario').textContent =
+      (c * 100).toFixed(1).replace('.0','') + '% conversion · £' + netARPU.toFixed(2) + ' net ARPU';
+  }
+  mau.addEventListener('input', update);
+  price.addEventListener('input', update);
+  conv.addEventListener('input', update);
+  update();
+})();
+</script>
+
+</body>
+</html>
